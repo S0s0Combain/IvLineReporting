@@ -10,11 +10,12 @@
     <ImageView
         android:id="@+id/imageView"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="250dp"
         android:src="@drawable/logo"
         app:layout_constraintBottom_toTopOf="@+id/textInputLayout"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
 
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/textInputLayout"
@@ -22,8 +23,7 @@
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        android:layout_margin="16dp"
-        android:layout_marginTop="10dp">
+        android:layout_margin="16dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/loginEditText"
@@ -51,19 +51,11 @@
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/enterButton"
-        style="button"
-        android:layout_width="200dp"
-        android:layout_height="60dp"
+        style="@style/AppButtonStyle"
         android:layout_margin="16dp"
-        android:backgroundTint="@color/yellow"
         android:onClick="enterButton_onClick"
         android:text="@string/enter"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        app:cornerRadius="5dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/textInputLayout2"
-        app:strokeColor="@color/black"
-        app:strokeWidth="2dp" />
+        app:layout_constraintTop_toBottomOf="@+id/textInputLayout2" />
 </androidx.constraintlayout.widget.ConstraintLayout>

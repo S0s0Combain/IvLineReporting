@@ -2,6 +2,7 @@
     <!-- Base application theme. -->
     <style name="Base.Theme.IvLineReporting" parent="Theme.Material3.DayNight.NoActionBar">
         <item name="colorPrimary">@color/black</item>
+        <item name="android:windowBackground">@color/white</item>
     </style>
 
     <style name="Theme.IvLineReporting" parent="Base.Theme.IvLineReporting" />

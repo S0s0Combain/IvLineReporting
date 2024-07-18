@@ -1,5 +1,6 @@
 package com.example.ivlinereporting
 
+import android.content.Intent
 import android.os.Bundle
 import android.view.View
 import android.widget.Toast
@@ -36,5 +37,7 @@ class LoginActivity : AppCompatActivity() {
             Toast.makeText(applicationContext, "Введите пароль", Toast.LENGTH_SHORT).show()
             return
         }
+        var intent = Intent(this, MainActivity::class.java)
+        startActivity(intent)
     }
 }
