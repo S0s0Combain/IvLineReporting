@@ -41,14 +41,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Название категории"
+                    android:text="Отчет о выполненной работе"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Описание категории"
+                    android:text="Ввод данных о выполненной работе и количестве использованных материалов"
                     android:textSize="14sp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -82,14 +82,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Название категории"
+                    android:text="Отчет об отработанных часах"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Описание категории"
+                    android:text="Ввод данных о количестве часов, отработанных сотрудниками"
                     android:textSize="14sp" />
 
                 <com.google.android.material.button.MaterialButton
@@ -122,14 +122,14 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Название категории"
+                    android:text="Отчет об использованной технике"
                     android:textSize="18sp"
                     android:textStyle="bold" />
 
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Описание категории"
+                    android:text=""
                     android:textSize="14sp" />
 
                 <com.google.android.material.button.MaterialButton
