@@ -6,4 +6,5 @@
     <string name="select">Выбрать</string>
     <string name="date">Дата</string>
     <string name="Object">Объект</string>
+    <string name="send">Отправить</string>
 </resources>
