@@ -7,4 +7,8 @@
     <string name="date">Дата</string>
     <string name="Object">Объект</string>
     <string name="send">Отправить</string>
+    <string-array name="time_types">
+        <item>Рейсы</item>
+        <item>Часы</item>
+    </string-array>
 </resources>

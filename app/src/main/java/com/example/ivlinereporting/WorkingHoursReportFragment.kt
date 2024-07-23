@@ -10,11 +10,8 @@ import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Spinner
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.isInvisible
-import androidx.core.view.isVisible
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.textfield.TextInputEditText
 
 class WorkingHoursReportFragment : Fragment() {
     private lateinit var workersViews: MutableMap<String, EditText>
@@ -34,12 +31,13 @@ class WorkingHoursReportFragment : Fragment() {
         titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         workersViews = mutableMapOf()
 
-        val addWorkerButton = requireActivity().findViewById<FloatingActionButton>(R.id.addWorkerButton)
-        addWorkerButton.setOnClickListener { addWorker() }
+        val addItemsButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        addItemsButton.setOnClickListener { addWorker() }
     }
 
     private fun addWorker() {
-        if(titleLinearLayout.isInvisible){
+        if (titleLinearLayout.isInvisible) {
             titleLinearLayout.visibility = View.VISIBLE
         }
         val workerLayout = layoutInflater.inflate(R.layout.worker_layout, null)
@@ -58,9 +56,9 @@ class WorkingHoursReportFragment : Fragment() {
 
         workersViews[workerSpinner.selectedItem.toString()] = hoursEditText
 
-        deleteWorkerButton.setOnClickListener{
+        deleteWorkerButton.setOnClickListener {
             (workerLayout.parent as ViewGroup).removeView(workerLayout)
-            if(workersContainer.childCount==0){
+            if (workersContainer.childCount == 0) {
                 titleLinearLayout.visibility = View.INVISIBLE
             }
         }
@@ -70,6 +68,11 @@ class WorkingHoursReportFragment : Fragment() {
     }
 
     private fun getWorkersNames(): List<String> {
-        return listOf("Иванов Иван Иванович", "Петров Петр Петрович", "Васильев Василий Васильевич", "Николай Коля")
+        return listOf(
+            "Иванов Иван Иванович",
+            "Петров Петр Петрович",
+            "Васильев Василий Васильевич",
+            "Николай Коля"
+        )
     }
 }
