@@ -2,8 +2,14 @@ package com.example.ivlinereporting
 
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog.OnDateSetListener
+import android.content.Context
+import android.graphics.Rect
 import android.os.Bundle
+import android.view.MotionEvent
 import android.view.View
+import android.view.inputmethod.InputMethodManager
+import android.widget.EditText
+import android.widget.Scroller
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -51,5 +57,23 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
 
     override fun onDateSelected(date: String){
         dateEditText.setText(date)
+    }
+
+    override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {
+        if (ev != null){
+            val v: View? = currentFocus
+            if(v is EditText){
+                val scroller = Scroller(this)
+                val scrollBounds = Rect()
+                v.getHitRect(scrollBounds)
+                scrollBounds.offset(-scroller.currX, -scroller.currY)
+                if(!scrollBounds.contains(ev.x.toInt(), ev.y.toInt())){
+                    v.clearFocus()
+                    val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+                    imm.hideSoftInputFromWindow(v.windowToken, 0)
+                }
+            }
+        }
+        return super.dispatchTouchEvent(ev)
     }
 }

@@ -15,6 +15,7 @@
             android:layout_width="wrap_content"
             android:layout_height="250dp"
             android:src="@drawable/logo"
+            app:layout_constraintBottom_toTopOf="@+id/cardView"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -25,14 +26,15 @@
             android:layout_height="wrap_content"
             app:cardCornerRadius="4dp"
             app:cardElevation="4dp"
-            app:cardUseCompatPadding="true"
-            app:layout_constraintTop_toBottomOf="@+id/imageView">
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="10dp">
+                android:padding="16dp"
+                android:layout_marginBottom="10dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
@@ -52,15 +54,16 @@
                         style="@style/AppButtonStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/select"
                         android:layout_marginTop="5dp"
-                        android:onClick="onSelectButton_onClick"/>
+                        android:onClick="onSelectButton_onClick"
+                        android:text="@string/select" />
                 </LinearLayout>
+
                 <ImageView
                     android:layout_width="60dp"
                     android:layout_height="60dp"
-                    android:src="@drawable/digger"
-                    android:layout_gravity="end|center_vertical"/>
+                    android:layout_gravity="end|center_vertical"
+                    android:src="@drawable/digger" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -77,7 +80,8 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="10dp">
+                android:padding="16dp"
+                android:layout_marginBottom="10dp">
 
 
                 <LinearLayout
@@ -99,39 +103,40 @@
                         style="@style/AppButtonStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/select"
                         android:layout_marginTop="5dp"
-                        android:onClick="onSelectButton_onClick"/>
+                        android:onClick="onSelectButton_onClick"
+                        android:text="@string/select" />
                 </LinearLayout>
 
                 <ImageView
                     android:layout_width="55dp"
                     android:layout_height="55dp"
+                    android:layout_gravity="end|center_vertical"
                     android:layout_marginEnd="5dp"
-                    android:src="@drawable/clock_icon"
-                    android:layout_gravity="end|center_vertical"/>
+                    android:src="@drawable/clock_icon" />
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
         <androidx.cardview.widget.CardView
+            android:id="@+id/cardView3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             app:cardCornerRadius="4dp"
             app:cardElevation="4dp"
             app:cardUseCompatPadding="true"
-            app:layout_constraintTop_toBottomOf="@+id/cardView2">
+            app:layout_constraintTop_toBottomOf="@id/cardView2">
 
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
-                android:padding="10dp">
+                android:padding="16dp">
 
                 <LinearLayout
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:layout_weight="1">
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -145,9 +150,9 @@
                         style="@style/AppButtonStyle"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="@string/select"
                         android:layout_marginTop="5dp"
-                        android:onClick="onSelectButton_onClick"/>
+                        android:onClick="onSelectButton_onClick"
+                        android:text="@string/select" />
                 </LinearLayout>
 
                 <ImageView
