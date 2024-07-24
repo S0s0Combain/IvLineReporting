@@ -10,27 +10,33 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:focusable="true"
+        android:layout_weight="0.1"
         android:src="@drawable/baseline_close_24"
         android:clickable="true"/>
     <Spinner
+        style="@style/Widget.AppCompat.Spinner.Underlined"
         android:id="@+id/techniqueSpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_weight="5" />
+        android:layout_weight="3"
+        tools:ignore="RtlSymmetry" />
     <Spinner
+        style="@style/Widget.AppCompat.Spinner.Underlined"
         android:id="@+id/timeType"
         android:layout_width="0dp"
-        android:layout_weight="3"
+        android:layout_weight="1.5"
+        android:paddingEnd="5dp"
         android:layout_height="wrap_content"
         android:entries="@array/time_types"
-        android:layout_gravity="center_vertical"/>
+        android:layout_gravity="center_vertical"
+        tools:ignore="RtlSymmetry" />
     <EditText
         android:id="@+id/hoursEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_weight="1"
+        android:layout_weight="0.7"
         android:inputType="number"
         android:maxLength="2"
         android:textAlignment="center"

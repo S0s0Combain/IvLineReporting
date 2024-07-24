@@ -74,7 +74,8 @@ class TechniqueReportFragment : Fragment() {
 
     private fun getTechniqueNames(): List<String> {
         return listOf(
-            "самосвал самопал"
+            "самосвал",
+            "илососная машина"
         )
     }
 }

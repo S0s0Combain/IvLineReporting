@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.Bundle
 import android.widget.DatePicker
 import androidx.annotation.RequiresApi
+import androidx.appcompat.view.ContextThemeWrapper
 import androidx.fragment.app.DialogFragment
 import com.google.android.material.textfield.TextInputEditText
 
@@ -19,8 +20,9 @@ class DatePickerFragment : DialogFragment() {
         val year = calendar.get(Calendar.YEAR)
         val month = calendar.get(Calendar.MONTH)
         val day = calendar.get(Calendar.DAY_OF_MONTH)
+        val contextThemeWrapper = ContextThemeWrapper(requireActivity(), R.style.DatePickerDialogTheme)
 
-        return DatePickerDialog(requireActivity(), dateSetListener, year, month, day)
+        return DatePickerDialog(contextThemeWrapper, dateSetListener, year, month, day)
     }
 
     @SuppressLint("DefaultLocale")

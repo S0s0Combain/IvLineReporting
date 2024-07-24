@@ -13,11 +13,12 @@
         android:src="@drawable/baseline_close_24"
         android:clickable="true"/>
     <Spinner
+        style="@style/Widget.AppCompat.Spinner.Underlined"
         android:id="@+id/workerSpinner"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_weight="8" />
+        android:layout_weight="7" />
 
     <EditText
         android:id="@+id/hoursEditText"

@@ -45,7 +45,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Отчет о выполненной работе"
+                        android:text="@string/work_report"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -94,7 +94,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Отчет об отработанных часах"
+                        android:text="@string/working_hours_report"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
@@ -141,7 +141,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Отчет технике"
+                        android:text="@string/technique_report"
                         android:textSize="18sp"
                         android:textStyle="bold" />
 
