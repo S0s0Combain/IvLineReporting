@@ -18,6 +18,7 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
     private lateinit var imageAdapter: ImageAdapter
     private val REQUEST_IMAGE_PICK = 1
     private val REQUEST_IMAGE_CAPTURE = 2
+    private val REQUEST_PDF_PICK = 3
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -44,11 +45,12 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
     private fun showDialog() {
         val dialog = AlertDialog.Builder(requireContext())
         dialog.setTitle("Выберите вариант")
-        val items = arrayOf("Открыть галерею", "Открыть камеру")
+        val items = arrayOf("Открыть галерею", "Открыть камеру", "Прикрепить PDF")
         dialog.setItems(items){_, which ->
             when(which){
                 0 -> pickImageFromGallery()
                 1->captureImage()
+                2 -> pickPdfFromStorage()
             }
         }
         dialog.show()
@@ -63,6 +65,12 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
     private fun captureImage() {
         val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
         startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+    }
+
+    private fun pickPdfFromStorage() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "application/pdf"
+        startActivityForResult(intent, REQUEST_PDF_PICK)
     }
 
     @Deprecated("Deprecated in Java")
@@ -84,6 +92,9 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
                     data?.extras?.get("data")?.let {bitmap ->
                         imageAdapter.addImage(bitmap as Bitmap)
                     }
+                }
+                REQUEST_PDF_PICK -> {
+                    data?.data?.let {uri ->imageAdapter.addPdf(uri)}
                 }
             }
         }

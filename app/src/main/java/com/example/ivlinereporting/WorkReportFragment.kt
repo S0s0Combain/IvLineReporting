@@ -32,7 +32,7 @@ class WorkReportFragment : Fragment() {
             MaterialsFragment(),
             ImagesFragment()
         )
-        val titles = arrayListOf("Работа", "Материалы", "Изображения")
+        val titles = arrayListOf("Работа", "Материалы", "Вложения")
 
         val adapter = FragmentsAdapter(fragments, requireActivity())
         viewPager.adapter = adapter
