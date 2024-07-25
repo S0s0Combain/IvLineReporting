@@ -1,7 +1,6 @@
 package com.example.ivlinereporting
 
 import android.os.Bundle
-import android.text.InputType
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -94,7 +93,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener {
         val parameterViews = materialParametersViews[materialName]
 
         for (parameter in parameters) {
-            val parameterLayout = layoutInflater.inflate(R.layout.material_parameter_item, null)
+            val parameterLayout = layoutInflater.inflate(R.layout.parameter_item, null)
             val parameterTextView =
                 parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
             val parameterValueSpinner =
@@ -105,7 +104,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener {
             val parameterAdapter = ArrayAdapter<String>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
-                getMaterialParameters(parameter)
+                getParameterValues(parameter)
             )
             parameterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             parameterValueSpinner.adapter = parameterAdapter
@@ -123,6 +122,14 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener {
         return when (materialName) {
             "Труба ПЭ" -> listOf("Диаметр")
             "Телескопический удлинитель" -> listOf("Длина", "Диаметр")
+            else -> listOf()
+        }
+    }
+
+    private fun getParameterValues(parameterName: String):List<String>{
+        return when(parameterName){
+            "Диаметр" -> listOf("32", "63", "110")
+            "Длина" -> listOf("1,2-2,0")
             else -> listOf()
         }
     }
