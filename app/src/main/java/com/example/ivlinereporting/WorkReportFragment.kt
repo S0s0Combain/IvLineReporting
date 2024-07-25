@@ -27,7 +27,7 @@ class WorkReportFragment : Fragment() {
         val viewPager = view.findViewById<ViewPager2>(R.id.viewPager)
         val tabLayout = view.findViewById<TabLayout>(R.id.tabLayout)
 
-        val fragments = arrayListOf(
+        val fragments = arrayListOf<Fragment>(
             WorkFragment(),
             MaterialsFragment(),
             ImagesFragment()

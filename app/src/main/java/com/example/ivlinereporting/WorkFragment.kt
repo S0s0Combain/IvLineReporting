@@ -34,7 +34,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
     }
 
     private fun addWork() {
-        if(titleLinearLayout.isInvisible){
+        if (titleLinearLayout.isInvisible) {
             titleLinearLayout.visibility = View.VISIBLE
         }
 
@@ -51,9 +51,9 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
         workSpinner.adapter = adapter
 
-        deleteWorkButton.setOnClickListener{
+        deleteWorkButton.setOnClickListener {
             (workLayout.parent as ViewGroup).removeView(workLayout)
-            if(workContainer.childCount==0){
+            if (workContainer.childCount == 0) {
                 titleLinearLayout.visibility = View.INVISIBLE
             }
         }
