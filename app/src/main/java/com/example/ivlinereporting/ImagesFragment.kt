@@ -1,33 +1,23 @@
 package com.example.ivlinereporting
 
+import android.app.Activity
+import android.app.AlertDialog
+import android.content.Intent
+import android.graphics.Bitmap
 import android.os.Bundle
+import android.provider.MediaStore
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-// TODO: Rename parameter arguments, choose names that match
-// the fragment initialization parameters, e.g. ARG_ITEM_NUMBER
-private const val ARG_PARAM1 = "param1"
-private const val ARG_PARAM2 = "param2"
-
-/**
- * A simple [Fragment] subclass.
- * Use the [ImagesFragment.newInstance] factory method to
- * create an instance of this fragment.
- */
 class ImagesFragment : Fragment() {
-    // TODO: Rename and change types of parameters
-    private var param1: String? = null
-    private var param2: String? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        arguments?.let {
-            param1 = it.getString(ARG_PARAM1)
-            param2 = it.getString(ARG_PARAM2)
-        }
-    }
+    private lateinit var imageAdapter: ImageAdapter
+    private val REQUEST_IMAGE_PICK = 1
+    private val REQUEST_IMAGE_CAPTURE = 2
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -37,23 +27,65 @@ class ImagesFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_images, container, false)
     }
 
-    companion object {
-        /**
-         * Use this factory method to create a new instance of
-         * this fragment using the provided parameters.
-         *
-         * @param param1 Parameter 1.
-         * @param param2 Parameter 2.
-         * @return A new instance of fragment ImagesFragment.
-         */
-        // TODO: Rename and change types and number of parameters
-        @JvmStatic
-        fun newInstance(param1: String, param2: String) =
-            ImagesFragment().apply {
-                arguments = Bundle().apply {
-                    putString(ARG_PARAM1, param1)
-                    putString(ARG_PARAM2, param2)
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        imageAdapter = ImageAdapter(mutableListOf())
+
+        val imageRecyclerView = requireView().findViewById<RecyclerView>(R.id.recyclerView)
+        imageRecyclerView.adapter = imageAdapter
+        imageRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+
+        val addItemsButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        addItemsButton.setOnClickListener { showDialog() }
+    }
+
+    private fun showDialog() {
+        val dialog = AlertDialog.Builder(requireContext())
+        dialog.setTitle("Выберите вариант")
+        val items = arrayOf("Открыть галерею", "Открыть камеру")
+        dialog.setItems(items){_, which ->
+            when(which){
+                0 -> pickImageFromGallery()
+                1->captureImage()
+            }
+        }
+        dialog.show()
+    }
+
+    private fun pickImageFromGallery() {
+        val intent = Intent(Intent.ACTION_PICK)
+        intent.type = "image/*"
+        startActivityForResult(intent, REQUEST_IMAGE_PICK)
+    }
+
+    private fun captureImage() {
+        val intent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+    }
+
+    @Deprecated("Deprecated in Java")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (resultCode == Activity.RESULT_OK) {
+            when (requestCode) {
+                REQUEST_IMAGE_PICK -> {
+                    data?.data?.let { uri ->
+                        val image =
+                            MediaStore.Images.Media.getBitmap(
+                                requireActivity().contentResolver,
+                                uri
+                            )
+                        imageAdapter.addImage(image)
+                    }
+                }
+                REQUEST_IMAGE_CAPTURE -> {
+                    data?.extras?.get("data")?.let {bitmap ->
+                        imageAdapter.addImage(bitmap as Bitmap)
+                    }
                 }
             }
+        }
     }
 }
