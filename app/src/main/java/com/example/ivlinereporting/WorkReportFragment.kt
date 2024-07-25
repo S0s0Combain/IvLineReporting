@@ -1,6 +1,7 @@
 package com.example.ivlinereporting
 
 import android.os.Bundle
+import android.renderscript.ScriptGroup.Input
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -36,8 +37,20 @@ class WorkReportFragment : Fragment() {
         val adapter = FragmentsAdapter(fragments, requireActivity())
         viewPager.adapter = adapter
 
-        TabLayoutMediator(tabLayout, viewPager){tab, position ->
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = titles[position]
         }.attach()
+
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
+            override fun onPageSelected(position: Int) {
+                super.onPageSelected(position)
+                val currentFragment = fragments[position]
+                if (currentFragment is OnAddItemClickListener) {
+                    (requireActivity() as InputDataActivity).setAddItemClickListener(currentFragment)
+                } else {
+                    (requireActivity() as InputDataActivity).setAddItemClickListener(null)
+                }
+            }
+        })
     }
 }

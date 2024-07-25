@@ -16,15 +16,20 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.fragment.app.Fragment
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 
 
 class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDialogListener {
     lateinit var dateEditText: TextInputEditText
+    lateinit var addItemsButton: FloatingActionButton
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_input_data)
+        addItemsButton = findViewById(R.id.addItemsButton)
+        setAddItemClickListener(null)
+
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
@@ -40,6 +45,12 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
         showFragment(fragment)
 
         dateEditText = findViewById(R.id.dateEditText)
+    }
+
+    fun setAddItemClickListener(listener: OnAddItemClickListener?){
+        addItemsButton.setOnClickListener{
+            listener?.onAddItemClick()
+        }
     }
 
     @SuppressLint("CommitTransaction")

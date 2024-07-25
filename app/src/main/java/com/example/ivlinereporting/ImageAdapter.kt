@@ -5,13 +5,14 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 
 class ImageAdapter(private val images: MutableList<Bitmap>):RecyclerView.Adapter<ImageAdapter.ImageViewHolder>() {
     class ImageViewHolder(itemView: View):RecyclerView.ViewHolder(itemView){
         val imageView: ImageView = itemView.findViewById(R.id.imageView)
-        val deleteImageButton: Button = itemView.findViewById(R.id.deleteImageButton)
+        val deleteImageButton: ImageButton = itemView.findViewById(R.id.deleteImageButton)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ImageViewHolder {

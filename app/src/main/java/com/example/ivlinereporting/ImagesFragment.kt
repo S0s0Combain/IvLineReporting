@@ -14,7 +14,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class ImagesFragment : Fragment() {
+class ImagesFragment : Fragment(), OnAddItemClickListener {
     private lateinit var imageAdapter: ImageAdapter
     private val REQUEST_IMAGE_PICK = 1
     private val REQUEST_IMAGE_CAPTURE = 2
@@ -35,10 +35,10 @@ class ImagesFragment : Fragment() {
         val imageRecyclerView = requireView().findViewById<RecyclerView>(R.id.recyclerView)
         imageRecyclerView.adapter = imageAdapter
         imageRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+    }
 
-        val addItemsButton =
-            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
-        addItemsButton.setOnClickListener { showDialog() }
+    override fun onAddItemClick() {
+        showDialog()
     }
 
     private fun showDialog() {

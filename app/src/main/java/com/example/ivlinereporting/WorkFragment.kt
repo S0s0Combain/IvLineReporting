@@ -12,7 +12,7 @@ import android.widget.Spinner
 import androidx.core.view.isInvisible
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class WorkFragment : Fragment() {
+class WorkFragment : Fragment(), OnAddItemClickListener {
     lateinit var titleLinearLayout: LinearLayout
     lateinit var workContainer: LinearLayout
 
@@ -27,10 +27,10 @@ class WorkFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
+    }
 
-        val addItemsButton =
-            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
-        addItemsButton.setOnClickListener { addWork() }
+    override fun onAddItemClick() {
+        addWork()
     }
 
     private fun addWork() {
