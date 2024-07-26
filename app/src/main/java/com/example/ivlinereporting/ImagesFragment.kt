@@ -1,18 +1,24 @@
 package com.example.ivlinereporting
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.DialogInterface
 import android.content.Intent
 import android.graphics.Bitmap
+import android.graphics.Color
+import android.graphics.Typeface
 import android.os.Bundle
 import android.provider.MediaStore
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.recyclerview.widget.LinearLayoutManager
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+
 
 class ImagesFragment : Fragment(), OnAddItemClickListener {
     private lateinit var imageAdapter: ImageAdapter
@@ -35,7 +41,7 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
 
         val imageRecyclerView = requireView().findViewById<RecyclerView>(R.id.recyclerView)
         imageRecyclerView.adapter = imageAdapter
-        imageRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        imageRecyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
     }
 
     override fun onAddItemClick() {
@@ -44,7 +50,16 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
 
     private fun showDialog() {
         val dialog = AlertDialog.Builder(requireContext())
-        dialog.setTitle("Выберите вариант")
+        val titleTextView = TextView(context)
+        titleTextView.text = "Выберите вариант"
+        titleTextView.setPadding(20, 30, 20, 30)
+        titleTextView.textSize = 20f
+        titleTextView.setTypeface(Typeface.DEFAULT_BOLD)
+        titleTextView.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.yellow))
+        titleTextView.setTextColor(Color.BLACK)
+
+        dialog.setCustomTitle(titleTextView)
+
         val items = arrayOf("Открыть галерею", "Открыть камеру", "Прикрепить PDF")
         dialog.setItems(items){_, which ->
             when(which){
@@ -53,6 +68,9 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
                 2 -> pickPdfFromStorage()
             }
         }
+        dialog.setNegativeButton("Отмена", DialogInterface.OnClickListener{ dialog, which ->
+            dialog.cancel()
+        })
         dialog.show()
     }
 
