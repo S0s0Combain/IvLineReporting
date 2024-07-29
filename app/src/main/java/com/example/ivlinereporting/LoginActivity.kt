@@ -2,6 +2,7 @@ package com.example.ivlinereporting
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Build
@@ -15,9 +16,11 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.preference.PreferenceManager
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 
@@ -30,9 +33,19 @@ class LoginActivity : AppCompatActivity() {
         setTheme(R.style.Theme_IvLineReporting)
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
+        val theme = sharedPreferences.getString("theme", "light")
+        applyTheme(theme as String)
         setContentView(R.layout.activity_login)
         loginEditText = findViewById(R.id.loginEditText)
         passwordEditText = findViewById(R.id.passwordEditText)
+    }
+
+    fun applyTheme(theme: String?){
+        when(theme){
+            "light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            "dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+        }
     }
 
     override fun dispatchTouchEvent(ev: MotionEvent?): Boolean {

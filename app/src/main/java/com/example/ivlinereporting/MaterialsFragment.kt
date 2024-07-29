@@ -89,18 +89,6 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener {
         })
 
         dialog.show()
-        //adjustDialogSize(dialog, adapter.itemCount)
-    }
-
-    fun adjustDialogSize(dialog: AlertDialog, itemCount: Int) {
-        val window = dialog.window
-        val layoutParams = window?.attributes
-        val maxHeight = (resources.displayMetrics.heightPixels * 0.8).toInt()
-        val itemHeight = 50
-        val desiredHeight = itemHeight * itemCount + 100
-
-        layoutParams?.height = if (desiredHeight > maxHeight) maxHeight else desiredHeight
-        window?.attributes = layoutParams
     }
 
     private fun updateMaterialParameters(

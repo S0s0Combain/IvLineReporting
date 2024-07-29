@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android">
+    <PreferenceCategory android:title="Тема">
+        <ListPreference
+            android:key="theme"
+            android:title="Выберите тему"
+            android:entries="@array/theme_entries"
+            android:entryValues="@array/theme_values"
+            android:defaultValue="light" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="О разработчике">
+        <Preference
+            android:title="О разработчике"
+            android:summary="Информация о разработчике"
+            android:key="about_developer" />
+    </PreferenceCategory>
+
+    <PreferenceCategory android:title="Помощь">
+        <Preference
+            android:title="Помощь"
+            android:summary="Контактная информация"
+            android:key="help" />
+    </PreferenceCategory>
+</PreferenceScreen>

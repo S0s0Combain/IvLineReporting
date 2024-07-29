@@ -2,6 +2,7 @@ package com.example.ivlinereporting
 
 import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
 import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -38,11 +39,15 @@ class MenuHandler(
     fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
             R.id.nav_help -> {}
-            R.id.nav_settings -> {}
+            R.id.nav_settings -> {
+                val intent = Intent(context, SettingsActivity::class.java)
+                context.startActivity(intent)
+            }
+
             R.id.nav_logout -> {}
             R.id.nav_exit -> {
-                    context.finishAffinity()
-                    exitProcess(0)
+                context.finishAffinity()
+                exitProcess(0)
             }
         }
         drawerLayout.closeDrawer(GravityCompat.START)
