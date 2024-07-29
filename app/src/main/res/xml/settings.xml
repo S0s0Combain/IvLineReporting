@@ -9,11 +9,19 @@
             android:defaultValue="light" />
     </PreferenceCategory>
 
-    <PreferenceCategory android:title="О разработчике">
+    <PreferenceCategory android:title="О приложении">
         <Preference
-            android:title="О разработчике"
-            android:summary="Информация о разработчике"
-            android:key="about_developer" />
+            android:title="Имя приложения"
+            android:summary="Мое приложение"
+            android:key="app_name" />
+        <Preference
+            android:title="Версия"
+            android:summary="1.0"
+            android:key="app_version"/>
+        <Preference
+            android:title="Разработчик"
+            android:summary="Кудринский Артем"
+            android:key="app_developer"/>
     </PreferenceCategory>
 
     <PreferenceCategory android:title="Помощь">

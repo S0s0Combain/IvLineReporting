@@ -24,11 +24,14 @@ class SettingsFragment : PreferenceFragmentCompat() {
             true
         }
 
-        val aboutDeveloperPreference: Preference? = findPreference("about_developer")
-        aboutDeveloperPreference?.setOnPreferenceClickListener {
-            showAboutDeveloperDialog()
-            true
-        }
+        val appNamePreference: Preference? = findPreference("app_name")
+        appNamePreference?.summary = getString(R.string.app_name)
+
+        val appVersionPreference: Preference? = findPreference("app_version")
+        appVersionPreference?.summary = getAppVersion()
+
+        val appDeveloperPreference: Preference? = findPreference("app_developer")
+        appDeveloperPreference?.summary = "Кудринский Артем"
 
         val helpPreference: Preference? = findPreference("help")
         helpPreference?.setOnPreferenceClickListener {
@@ -43,9 +46,13 @@ class SettingsFragment : PreferenceFragmentCompat() {
             "dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         }
     }
+    private fun getAppVersion(): String {
+        val packageInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
+        return packageInfo.versionName
+    }
 
     private fun showHelpDialog() {
-
+        val aboutDeveloperText = "Разработчик"
     }
 
     private fun showAboutDeveloperDialog() {
