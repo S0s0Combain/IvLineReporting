@@ -17,6 +17,7 @@
     <string name="help">Помощь</string>
     <string name="open_nav">Открыть навигационную панель</string>
     <string name="close_nav">Закрыть навигационную панель</string>
+    <string name="user">Пользователь:</string>
     <string-array name="time_types">
         <item>Рейсы</item>
         <item>Часы</item>

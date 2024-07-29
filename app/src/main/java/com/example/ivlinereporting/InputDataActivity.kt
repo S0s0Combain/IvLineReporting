@@ -15,6 +15,7 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -39,12 +40,7 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
         setContentView(R.layout.activity_input_data)
         addItemsButton = findViewById(R.id.addItemsButton)
         setAddItemClickListener(null)
-
-        ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
-            insets
-        }
+        window.statusBarColor = ContextCompat.getColor(this, R.color.yellow)
         val fragmentType = intent.getStringExtra("fragment_type")
         val fragment = when (fragmentType) {
             "workReport" -> WorkReportFragment()
