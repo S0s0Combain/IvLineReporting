@@ -20,13 +20,14 @@
             android:clickable="true"
             android:src="@drawable/baseline_close_24"
             android:layout_gravity="center_vertical"/>
-        <Spinner
-            android:id="@+id/materialSpinner"
+        <EditText
+            android:id="@+id/materialEditText"
             android:layout_width="0dp"
-            style="@style/Widget.AppCompat.Spinner.Underlined"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_weight="6"/>
+            android:layout_weight="6"
+            android:focusable="false"
+            android:clickable="true"/>
         <EditText
             android:id="@+id/quantityEditText"
             android:layout_width="wrap_content"

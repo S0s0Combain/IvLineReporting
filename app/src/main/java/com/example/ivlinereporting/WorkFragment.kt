@@ -1,6 +1,9 @@
 package com.example.ivlinereporting
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -13,8 +16,9 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import androidx.core.view.isInvisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import org.w3c.dom.Text
 
 class WorkFragment : Fragment(), OnAddItemClickListener {
     lateinit var workContainer: LinearLayout
@@ -31,8 +35,12 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        workContainer = requireView().findViewById(R.id.workContainer)
         workViews = mutableMapOf()
         workParametersViews = mutableMapOf()
+
+        val addItemsButton = requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        addItemsButton.setOnClickListener { addWork() }
     }
 
     override fun onAddItemClick() {
@@ -40,41 +48,60 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
     }
 
     private fun addWork() {
-        workContainer = requireView().findViewById(R.id.workContainer)
-
         val workLayout = layoutInflater.inflate(R.layout.work_item, workContainer, false)
 
         val deleteWorkButton = workLayout.findViewById<ImageView>(R.id.deleteWorkButton)
-        val workSpinner = workLayout.findViewById<Spinner>(R.id.workSpinner)
-        val workParametersContainer =
-            workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
-
-        val adapter = ArrayAdapter<String>(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            getWorks()
-        )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        workSpinner.adapter = adapter
+        val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
+        val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
         deleteWorkButton.setOnClickListener {
             (workLayout.parent as ViewGroup).removeView(workLayout)
         }
 
-        workSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                updateWorkParameters(workParametersContainer, workSpinner.selectedItem.toString())
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
+        workEditText.setOnClickListener { showWorkDialog(workEditText, workParametersContainer) }
 
         workContainer.addView(workLayout)
+    }
+
+    private fun showWorkDialog(workEditText: EditText, workParametersContainer: LinearLayout) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_search_work, null)
+        val searchWorksEditText = dialogView.findViewById<EditText>(R.id.searchWorksEditText)
+        val worksRecyclerView = dialogView.findViewById<RecyclerView>(R.id.worksRecyclerView)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        val adapter = WorkAdapter(getWorks()) { selectedWork ->
+            workEditText.setText(selectedWork)
+            updateWorkParameters(workParametersContainer, selectedWork)
+            dialog.dismiss()
+        }
+        worksRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        worksRecyclerView.adapter = adapter
+
+        searchWorksEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                adapter.filter(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+        dialog.show()
+        //adjustDialogSize(dialog, adapter.itemCount)
+    }
+
+    fun adjustDialogSize(dialog: AlertDialog, itemCount: Int) {
+        val window = dialog.window
+        val layoutParams = window?.attributes
+        val maxHeight = (resources.displayMetrics.heightPixels * 0.8).toInt()
+        val itemHeight = 50
+        val desiredHeight = itemHeight * itemCount + 100
+
+        layoutParams?.height = if (desiredHeight > maxHeight) maxHeight else desiredHeight
+        window?.attributes = layoutParams
     }
 
     private fun updateWorkParameters(workParametersContainer: LinearLayout, workName: String) {
@@ -84,10 +111,8 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
 
         for (parameter in parameters) {
             val parameterLayout = layoutInflater.inflate(R.layout.parameter_item, null)
-            val parameterTextView =
-                parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
-            val parameterValueSpinner =
-                parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
+            val parameterTextView = parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
+            val parameterValueSpinner = parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
 
             parameterTextView.text = parameter
 
@@ -103,7 +128,6 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
             workParametersContainer.addView(parameterLayout)
         }
     }
-
 
     private fun getWorks(): List<String> {
         return listOf("Ознакомление с объектом работ", "Укладка трубы", "Копка траншеи")

@@ -22,13 +22,14 @@
             android:focusable="true"
             android:src="@drawable/baseline_close_24" />
 
-        <Spinner
-            android:id="@+id/workSpinner"
-            style="@style/Widget.AppCompat.Spinner.Underlined"
+        <EditText
+            android:id="@+id/workEditText"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:focusable="false"
+            android:clickable="true"/>
     </LinearLayout>
     <LinearLayout
         android:id="@+id/parametersContainer"

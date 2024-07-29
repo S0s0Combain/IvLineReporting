@@ -1,23 +1,28 @@
 package com.example.ivlinereporting
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.AdapterView
 import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MaterialsFragment : Fragment(), OnAddItemClickListener {
+    lateinit var materialsContainer: LinearLayout
     private lateinit var materialViews: MutableMap<String, EditText>
     private lateinit var materialParametersViews: MutableMap<String, MutableMap<String, Spinner>>
 
-    lateinit var materialsContainer: LinearLayout
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -29,8 +34,12 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        materialsContainer = requireView().findViewById(R.id.materialsContainer)
         materialViews = mutableMapOf()
         materialParametersViews = mutableMapOf()
+
+        val addItemsButton = requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        addItemsButton.setOnClickListener { addMaterial() }
     }
 
     override fun onAddItemClick() {
@@ -38,50 +47,60 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener {
     }
 
     fun addMaterial() {
-        materialsContainer = requireView().findViewById(R.id.materialsContainer)
-        val materialLayout =
-            layoutInflater.inflate(R.layout.material_item, materialsContainer, false)
+        val materialLayout = layoutInflater.inflate(R.layout.material_item, materialsContainer, false)
 
         val deleteMaterialButton = materialLayout.findViewById<ImageView>(R.id.deleteMaterialButton)
-        val materialSpinner = materialLayout.findViewById<Spinner>(R.id.materialSpinner)
-        val quantityEditText = materialLayout.findViewById<EditText>(R.id.quantityEditText)
-        val materialParametersContainer =
-            materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
-
-        val adapter = ArrayAdapter<String>(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            getMaterials()
-        )
-
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        materialSpinner.adapter = adapter
-
-        materialViews[materialSpinner.selectedItem.toString()] = quantityEditText
-        materialParametersViews[materialSpinner.selectedItem.toString()] = mutableMapOf()
+        val materialEditText = materialLayout.findViewById<EditText>(R.id.materialEditText)
+        val materialParametersContainer = materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
         deleteMaterialButton.setOnClickListener {
             (materialLayout.parent as ViewGroup).removeView(materialLayout)
         }
 
-        materialSpinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View?,
-                position: Int,
-                id: Long
-            ) {
-                updateMaterialParameters(
-                    materialParametersContainer,
-                    materialSpinner.selectedItem.toString()
-                )
-            }
-
-            override fun onNothingSelected(parent: AdapterView<*>?) {}
-        }
-
+        materialEditText.setOnClickListener { showMaterialDialog(materialEditText, materialParametersContainer) }
 
         materialsContainer.addView(materialLayout)
+    }
+
+    private fun showMaterialDialog(materialEditText: EditText, materialParametersContainer: LinearLayout) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_search_material, null)
+        val searchMaterialsEditText = dialogView.findViewById<EditText>(R.id.searchMaterialsEditText)
+        val materialsRecyclerView = dialogView.findViewById<RecyclerView>(R.id.materialsRecyclerView)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        val adapter = MaterialAdapter(getMaterials()) { selectedMaterial ->
+            materialEditText.setText(selectedMaterial)
+            updateMaterialParameters(materialParametersContainer, selectedMaterial)
+            dialog.dismiss()
+        }
+        materialsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        materialsRecyclerView.adapter = adapter
+
+        searchMaterialsEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                adapter.filter(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) {}
+        })
+
+        dialog.show()
+        //adjustDialogSize(dialog, adapter.itemCount)
+    }
+
+    fun adjustDialogSize(dialog: AlertDialog, itemCount: Int) {
+        val window = dialog.window
+        val layoutParams = window?.attributes
+        val maxHeight = (resources.displayMetrics.heightPixels * 0.8).toInt()
+        val itemHeight = 50
+        val desiredHeight = itemHeight * itemCount + 100
+
+        layoutParams?.height = if (desiredHeight > maxHeight) maxHeight else desiredHeight
+        window?.attributes = layoutParams
     }
 
     private fun updateMaterialParameters(
