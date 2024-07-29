@@ -47,7 +47,6 @@ class WorkingHoursReportFragment : Fragment() {
 
         val deleteWorkerButton = workerLayout.findViewById<ImageView>(R.id.deleteWorkerButton)
         val workerEditText = workerLayout.findViewById<EditText>(R.id.workerEditText)
-        val hoursEditText = workerLayout.findViewById<EditText>(R.id.hoursEditText)
 
         workerEditText.setOnClickListener { showWorkerDialog(workerEditText) }
 

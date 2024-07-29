@@ -1,22 +1,23 @@
 package com.example.ivlinereporting
 
+import android.app.AlertDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Spinner
-import android.widget.Toast
 import androidx.core.view.isInvisible
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class TechniqueReportFragment : Fragment() {
     private lateinit var techniqueViews: MutableMap<String, EditText>
-    private var savedTechniqueViews: MutableMap<String, EditText>?=null
     private lateinit var titleLinearLayout: LinearLayout
     private lateinit var techniqueContainer: LinearLayout
     override fun onCreateView(
@@ -46,18 +47,10 @@ class TechniqueReportFragment : Fragment() {
 
         val deleteTechniqueButton =
             techniqueLayout.findViewById<ImageView>(R.id.deleteTechniqueButton)
-        val techniqueSpinner = techniqueLayout.findViewById<Spinner>(R.id.techniqueSpinner)
-        val hoursEditText = techniqueLayout.findViewById<EditText>(R.id.hoursEditText)
 
-        val adapter = ArrayAdapter<String>(
-            requireContext(),
-            android.R.layout.simple_spinner_item,
-            getTechniqueNames()
-        )
-        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-        techniqueSpinner.adapter = adapter
+        val techniqueEditText = techniqueLayout.findViewById<EditText>(R.id.techniqueEditText)
 
-        techniqueViews[techniqueSpinner.selectedItem.toString()] = hoursEditText
+        techniqueEditText.setOnClickListener { showTechniqueDialog(techniqueEditText) }
 
         deleteTechniqueButton.setOnClickListener {
             (techniqueLayout.parent as ViewGroup).removeView(techniqueLayout)
@@ -68,14 +61,53 @@ class TechniqueReportFragment : Fragment() {
 
         techniqueContainer = requireView().findViewById<LinearLayout>(R.id.techniqueContainer)
         techniqueContainer.addView(techniqueLayout)
+    }
 
-        savedTechniqueViews?.put(techniqueSpinner.selectedItem.toString(), hoursEditText)
+    private fun showTechniqueDialog(techniqueEditText: EditText) {
+        val dialogView = layoutInflater.inflate(R.layout.dialog_search_technique, null)
+        val searchTechniqueEditText = dialogView.findViewById<EditText>(R.id.searchTechniqueEditText)
+        val techniqueRecyclerView = dialogView.findViewById<RecyclerView>(R.id.techniqueRecyclerView)
+        val dialog = AlertDialog.Builder(requireContext())
+            .setView(dialogView)
+            .create()
+
+        val adapter = TechniqueAdapter(getTechniqueNames()) { selectedTechnique ->
+            techniqueEditText.setText(selectedTechnique)
+            dialog.dismiss()
+        }
+        techniqueRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        techniqueRecyclerView.adapter = adapter
+
+        searchTechniqueEditText.addTextChangedListener(object: TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                adapter.filter(s.toString())
+            }
+
+            override fun afterTextChanged(s: Editable?) { }
+        })
+
+        dialog.show()
+        adjustDialogSize(dialog, adapter.itemCount)
+    }
+
+    fun adjustDialogSize(dialog: AlertDialog, itemCount: Int){
+        val window = dialog.window
+        val layoutParams = window?.attributes
+        val maxHeight = (resources.displayMetrics.heightPixels*0.8).toInt()
+        val itemHeight = 50
+        val desiredHeight = itemHeight * itemCount+100
+
+        layoutParams?.height= if(desiredHeight>maxHeight) maxHeight else desiredHeight
+        window?.attributes = layoutParams
     }
 
     private fun getTechniqueNames(): List<String> {
         return listOf(
             "самосвал",
-            "илососная машина"
+            "илососная машина",
+            "Техника"
         )
     }
 }

@@ -13,14 +13,14 @@
         android:layout_weight="0.1"
         android:src="@drawable/baseline_close_24"
         android:clickable="true"/>
-    <Spinner
-        style="@style/Widget.AppCompat.Spinner.Underlined"
-        android:id="@+id/techniqueSpinner"
+    <EditText
+        android:id="@+id/techniqueEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
         android:layout_weight="3"
-        tools:ignore="RtlSymmetry" />
+        android:focusable="false"
+        android:clickable="true"/>
     <Spinner
         style="@style/Widget.AppCompat.Spinner.Underlined"
         android:id="@+id/timeType"

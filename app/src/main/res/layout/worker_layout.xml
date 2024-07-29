@@ -13,7 +13,6 @@
         android:src="@drawable/baseline_close_24"
         android:clickable="true"/>
     <EditText
-        style="@style/Widget.AppCompat.Spinner.Underlined"
         android:id="@+id/workerEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"

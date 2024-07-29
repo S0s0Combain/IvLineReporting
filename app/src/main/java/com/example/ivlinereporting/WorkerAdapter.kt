@@ -12,6 +12,7 @@ import androidx.recyclerview.widget.RecyclerView.Recycler
 class WorkerAdapter(private val workers: List<String>, private val onItemClick: (String) -> Unit) :
     RecyclerView.Adapter<WorkerAdapter.WorkerViewHolder>() {
     private var filteredWorkers = workers
+
     @SuppressLint("NotifyDataSetChanged")
     fun filter(query: String) {
         filteredWorkers = workers.filter { it.contains(query, ignoreCase = true) }
@@ -19,7 +20,8 @@ class WorkerAdapter(private val workers: List<String>, private val onItemClick: 
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): WorkerViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(android.R.layout.simple_list_item_1, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(android.R.layout.simple_list_item_1, parent, false)
         return WorkerViewHolder(view)
     }
 
@@ -37,5 +39,4 @@ class WorkerAdapter(private val workers: List<String>, private val onItemClick: 
             itemView.setOnClickListener { onItemClick(worker) }
         }
     }
-
 }
