@@ -10,6 +10,13 @@
     <string name="work_report">Отчет о выполненной работе</string>
     <string name="working_hours_report">Отчет об отработанных часах</string>
     <string name="technique_report">Отчет о технике</string>
+    <string name="back">Назад</string>
+    <string name="settings">Настройки</string>
+    <string name="logout">Выйти из аккаунта</string>
+    <string name="exit">Выход</string>
+    <string name="help">Помощь</string>
+    <string name="open_nav">Открыть навигационную панель</string>
+    <string name="close_nav">Закрыть навигационную панель</string>
     <string-array name="time_types">
         <item>Рейсы</item>
         <item>Часы</item>
