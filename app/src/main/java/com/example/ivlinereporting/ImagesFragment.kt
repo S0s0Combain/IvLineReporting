@@ -67,15 +67,7 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
 
     private fun showDialog() {
         val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
-        val titleTextView = TextView(context)
-        titleTextView.text = "Выберите вариант"
-        titleTextView.setPadding(20, 30, 20, 30)
-        titleTextView.textSize = 20f
-        titleTextView.setTypeface(Typeface.DEFAULT_BOLD)
-        titleTextView.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.yellow))
-        titleTextView.setTextColor(Color.BLACK)
-
-        dialog.setCustomTitle(titleTextView)
+        dialog.setTitle("Выберите вариант")
 
         val items = arrayOf("Открыть галерею", "Открыть камеру", "Прикрепить PDF")
         dialog.setItems(items) { _, which ->
