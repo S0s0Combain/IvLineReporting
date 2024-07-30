@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -22,8 +23,7 @@ class WorkingHoursReportFragment : Fragment() {
     lateinit var titleLinearLayout: LinearLayout
     lateinit var workersContainer: LinearLayout
     override fun onCreateView(
-        inflater: LayoutInflater, container: ViewGroup?,
-        savedInstanceState: Bundle?
+        inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View? {
         return inflater.inflate(R.layout.fragment_working_hours_report, container, false)
     }
@@ -37,6 +37,25 @@ class WorkingHoursReportFragment : Fragment() {
         val addItemsButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addWorker() }
+        val sendDataButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
+        sendDataButton.setOnClickListener { sendWorkingHoursReport() }
+    }
+
+    private fun sendWorkingHoursReport() {
+        val dialog = AlertDialog.Builder(requireContext())
+        dialog.setTitle("Отправка данных")
+        dialog.setMessage("Вы уверены, что хотите отправить отчет об отработанных часах?")
+        dialog.setPositiveButton("Подтвердить") { dialog, _ ->
+            {
+                dialog.dismiss()
+            }
+        }
+        dialog.setNegativeButton("Отмена") { dialog, _ ->
+            {
+                dialog.dismiss()
+            }
+        }
     }
 
     private fun addWorker() {
@@ -65,9 +84,7 @@ class WorkingHoursReportFragment : Fragment() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_worker, null)
         val searchWorkerEditText = dialogView.findViewById<EditText>(R.id.searchWorkerEditText)
         val workersRecyclerView = dialogView.findViewById<RecyclerView>(R.id.workersRecyclerView)
-        val dialog = AlertDialog.Builder(requireContext())
-            .setView(dialogView)
-            .create()
+        val dialog = AlertDialog.Builder(requireContext()).setView(dialogView).create()
 
         val adapter = WorkerAdapter(getWorkersNames()) { selectedWorker ->
             workerEditText.setText(selectedWorker)
@@ -76,28 +93,28 @@ class WorkingHoursReportFragment : Fragment() {
         workersRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         workersRecyclerView.adapter = adapter
 
-        searchWorkerEditText.addTextChangedListener(object: TextWatcher{
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+        searchWorkerEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 adapter.filter(s.toString())
             }
 
-            override fun afterTextChanged(s: Editable?) { }
+            override fun afterTextChanged(s: Editable?) {}
         })
 
         dialog.show()
         adjustDialogSize(dialog, adapter.itemCount)
     }
 
-    fun adjustDialogSize(dialog: AlertDialog, itemCount: Int){
+    fun adjustDialogSize(dialog: AlertDialog, itemCount: Int) {
         val window = dialog.window
         val layoutParams = window?.attributes
-        val maxHeight = (resources.displayMetrics.heightPixels*0.8).toInt()
+        val maxHeight = (resources.displayMetrics.heightPixels * 0.8).toInt()
         val itemHeight = 50
-        val desiredHeight = itemHeight * itemCount+100
+        val desiredHeight = itemHeight * itemCount + 100
 
-        layoutParams?.height= if(desiredHeight>maxHeight) maxHeight else desiredHeight
+        layoutParams?.height = if (desiredHeight > maxHeight) maxHeight else desiredHeight
         window?.attributes = layoutParams
     }
 
@@ -108,7 +125,17 @@ class WorkingHoursReportFragment : Fragment() {
             "Васильев Василий Васильевич",
             "Николай Коля",
             "Сотрудник",
-            "Сотрудник","Сотрудник","Сотрудник","Сотрудник","Сотрудник","Сотрудник","Сотрудник","Сотрудник","Сотрудник","Сотрудник","Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
+            "Сотрудник",
         )
     }
 }

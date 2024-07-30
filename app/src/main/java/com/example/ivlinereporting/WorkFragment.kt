@@ -15,12 +15,13 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class WorkFragment : Fragment(), OnAddItemClickListener {
+class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
     lateinit var workContainer: LinearLayout
     private lateinit var workViews: MutableMap<String, EditText>
     private lateinit var workParametersViews: MutableMap<String, MutableMap<String, Spinner>>
@@ -39,12 +40,20 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
         workViews = mutableMapOf()
         workParametersViews = mutableMapOf()
 
-        val addItemsButton = requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        val addItemsButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addWork() }
+        val sendDataButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
+        sendDataButton.setOnClickListener { sendWorkReport() }
     }
 
     override fun onAddItemClick() {
         addWork()
+    }
+
+    override fun onSendDataClick() {
+        sendWorkReport()
     }
 
     private fun addWork() {
@@ -52,7 +61,8 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
 
         val deleteWorkButton = workLayout.findViewById<ImageView>(R.id.deleteWorkButton)
         val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
-        val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
+        val workParametersContainer =
+            workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
         deleteWorkButton.setOnClickListener {
             (workLayout.parent as ViewGroup).removeView(workLayout)
@@ -61,6 +71,10 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
         workEditText.setOnClickListener { showWorkDialog(workEditText, workParametersContainer) }
 
         workContainer.addView(workLayout)
+    }
+
+    private fun sendWorkReport() {
+        Toast.makeText(context, "Отправка отчета о выполненной работе", Toast.LENGTH_SHORT).show()
     }
 
     private fun showWorkDialog(workEditText: EditText, workParametersContainer: LinearLayout) {
@@ -99,8 +113,10 @@ class WorkFragment : Fragment(), OnAddItemClickListener {
 
         for (parameter in parameters) {
             val parameterLayout = layoutInflater.inflate(R.layout.parameter_item, null)
-            val parameterTextView = parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
-            val parameterValueSpinner = parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
+            val parameterTextView =
+                parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
+            val parameterValueSpinner =
+                parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
 
             parameterTextView.text = parameter
 

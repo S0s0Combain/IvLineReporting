@@ -14,11 +14,12 @@ import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
+import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
-class MaterialsFragment : Fragment(), OnAddItemClickListener {
+class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
     lateinit var materialsContainer: LinearLayout
     private lateinit var materialViews: MutableMap<String, EditText>
     private lateinit var materialParametersViews: MutableMap<String, MutableMap<String, Spinner>>
@@ -38,34 +39,58 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener {
         materialViews = mutableMapOf()
         materialParametersViews = mutableMapOf()
 
-        val addItemsButton = requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        val addItemsButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addMaterial() }
+        val sendDataButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
+        sendDataButton.setOnClickListener { sendMaterialsReport() }
     }
 
     override fun onAddItemClick() {
         addMaterial()
     }
 
+    override fun onSendDataClick() {
+        sendMaterialsReport()
+    }
+
     fun addMaterial() {
-        val materialLayout = layoutInflater.inflate(R.layout.material_item, materialsContainer, false)
+        val materialLayout =
+            layoutInflater.inflate(R.layout.material_item, materialsContainer, false)
 
         val deleteMaterialButton = materialLayout.findViewById<ImageView>(R.id.deleteMaterialButton)
         val materialEditText = materialLayout.findViewById<EditText>(R.id.materialEditText)
-        val materialParametersContainer = materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
+        val materialParametersContainer =
+            materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
         deleteMaterialButton.setOnClickListener {
             (materialLayout.parent as ViewGroup).removeView(materialLayout)
         }
 
-        materialEditText.setOnClickListener { showMaterialDialog(materialEditText, materialParametersContainer) }
+        materialEditText.setOnClickListener {
+            showMaterialDialog(
+                materialEditText,
+                materialParametersContainer
+            )
+        }
 
         materialsContainer.addView(materialLayout)
     }
 
-    private fun showMaterialDialog(materialEditText: EditText, materialParametersContainer: LinearLayout) {
+    fun sendMaterialsReport(){
+        Toast.makeText(context, "Отправка отчета о затраченных материалах", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showMaterialDialog(
+        materialEditText: EditText,
+        materialParametersContainer: LinearLayout
+    ) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_material, null)
-        val searchMaterialsEditText = dialogView.findViewById<EditText>(R.id.searchMaterialsEditText)
-        val materialsRecyclerView = dialogView.findViewById<RecyclerView>(R.id.materialsRecyclerView)
+        val searchMaterialsEditText =
+            dialogView.findViewById<EditText>(R.id.searchMaterialsEditText)
+        val materialsRecyclerView =
+            dialogView.findViewById<RecyclerView>(R.id.materialsRecyclerView)
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .create()
@@ -133,8 +158,8 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener {
         }
     }
 
-    private fun getParameterValues(parameterName: String):List<String>{
-        return when(parameterName){
+    private fun getParameterValues(parameterName: String): List<String> {
+        return when (parameterName) {
             "Диаметр" -> listOf("32", "63", "110")
             "Длина" -> listOf("1,2-2,0")
             else -> listOf()

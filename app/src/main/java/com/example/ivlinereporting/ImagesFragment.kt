@@ -14,13 +14,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 
-class ImagesFragment : Fragment(), OnAddItemClickListener {
+class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
     private lateinit var imageAdapter: ImageAdapter
     private val REQUEST_IMAGE_PICK = 1
     private val REQUEST_IMAGE_CAPTURE = 2
@@ -42,10 +44,22 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
         val imageRecyclerView = requireView().findViewById<RecyclerView>(R.id.recyclerView)
         imageRecyclerView.adapter = imageAdapter
         imageRecyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
+
+        val sendDataButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
+        sendDataButton.setOnClickListener { sendAttachment() }
     }
 
     override fun onAddItemClick() {
         showDialog()
+    }
+
+    override fun onSendDataClick() {
+        sendAttachment()
+    }
+
+    fun sendAttachment() {
+        Toast.makeText(context, "Отправка вложений", Toast.LENGTH_SHORT).show()
     }
 
     private fun showDialog() {
@@ -61,14 +75,14 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
         dialog.setCustomTitle(titleTextView)
 
         val items = arrayOf("Открыть галерею", "Открыть камеру", "Прикрепить PDF")
-        dialog.setItems(items){_, which ->
-            when(which){
+        dialog.setItems(items) { _, which ->
+            when (which) {
                 0 -> pickImageFromGallery()
-                1->captureImage()
+                1 -> captureImage()
                 2 -> pickPdfFromStorage()
             }
         }
-        dialog.setNegativeButton("Отмена", DialogInterface.OnClickListener{ dialog, which ->
+        dialog.setNegativeButton("Отмена", DialogInterface.OnClickListener { dialog, which ->
             dialog.cancel()
         })
         dialog.show()
@@ -106,13 +120,15 @@ class ImagesFragment : Fragment(), OnAddItemClickListener {
                         imageAdapter.addImage(image)
                     }
                 }
+
                 REQUEST_IMAGE_CAPTURE -> {
-                    data?.extras?.get("data")?.let {bitmap ->
+                    data?.extras?.get("data")?.let { bitmap ->
                         imageAdapter.addImage(bitmap as Bitmap)
                     }
                 }
+
                 REQUEST_PDF_PICK -> {
-                    data?.data?.let {uri ->imageAdapter.addPdf(uri)}
+                    data?.data?.let { uri -> imageAdapter.addPdf(uri) }
                 }
             }
         }

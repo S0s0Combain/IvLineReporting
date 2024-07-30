@@ -1,5 +1,6 @@
 package com.example.ivlinereporting
 
+import android.app.AlertDialog
 import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.fragment.app.Fragment
@@ -17,8 +18,9 @@ class SettingsFragment : PreferenceFragmentCompat() {
         setPreferencesFromResource(R.xml.settings, rootKey)
 
         val themePreference: Preference? = findPreference("theme")
-        themePreference?.setOnPreferenceChangeListener{preference, newValue ->
-            val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(requireContext())
+        themePreference?.setOnPreferenceChangeListener { preference, newValue ->
+            val sharedPreferences: SharedPreferences =
+                PreferenceManager.getDefaultSharedPreferences(requireContext())
             sharedPreferences.edit().putString("theme", newValue as String).apply()
             applyTheme(newValue as String)
             true
@@ -40,23 +42,27 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
-    private fun applyTheme(theme: String){
-        when(theme){
+    private fun applyTheme(theme: String) {
+        when (theme) {
             "light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             "dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         }
     }
+
     private fun getAppVersion(): String {
-        val packageInfo = requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
+        val packageInfo =
+            requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
         return packageInfo.versionName
     }
 
     private fun showHelpDialog() {
-        val aboutDeveloperText = "Разработчик"
+        val helpText =
+            "Если у вас возникли проблемы при использовании приложения, пожалуйста, обратитесь по адресу "
+
+        val dialog = AlertDialog.Builder(requireContext())
+        dialog.setTitle("Помощь")
+        dialog.setMessage(helpText)
+        dialog.setPositiveButton("Ок") { dialog, _ -> dialog.dismiss() }
+        dialog.show()
     }
-
-    private fun showAboutDeveloperDialog() {
-
-    }
-
 }

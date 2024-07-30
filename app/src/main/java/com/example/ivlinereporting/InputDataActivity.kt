@@ -28,6 +28,7 @@ import com.google.android.material.textfield.TextInputEditText
 class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDialogListener {
     lateinit var dateEditText: TextInputEditText
     lateinit var addItemsButton: FloatingActionButton
+    lateinit var  sendDataButton: FloatingActionButton
     lateinit var toolbarTitle: String
     lateinit var menuHandler: MenuHandler
     lateinit var drawerLayout: DrawerLayout
@@ -39,7 +40,9 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
         enableEdgeToEdge()
         setContentView(R.layout.activity_input_data)
         addItemsButton = findViewById(R.id.addItemsButton)
+        sendDataButton = findViewById(R.id.sendDataButton)
         setAddItemClickListener(null)
+        setSendDataClickListener(null)
         window.statusBarColor = ContextCompat.getColor(this, R.color.yellow)
         val fragmentType = intent.getStringExtra("fragment_type")
         val fragment = when (fragmentType) {
@@ -80,6 +83,12 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
     fun setAddItemClickListener(listener: OnAddItemClickListener?) {
         addItemsButton.setOnClickListener {
             listener?.onAddItemClick()
+        }
+    }
+
+    fun setSendDataClickListener(listener: OnSendDataClickListener?) {
+        sendDataButton.setOnClickListener{
+            listener?.onSendDataClick()
         }
     }
 

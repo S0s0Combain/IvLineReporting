@@ -50,6 +50,11 @@ class WorkReportFragment : Fragment() {
                 } else {
                     (requireActivity() as InputDataActivity).setAddItemClickListener(null)
                 }
+                if(currentFragment is OnSendDataClickListener){
+                    (requireActivity() as InputDataActivity).setSendDataClickListener(currentFragment)
+                }else{
+                    (requireActivity() as InputDataActivity).setSendDataClickListener(null)
+                }
             }
         })
     }

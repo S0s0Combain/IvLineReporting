@@ -11,6 +11,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.Toast
 import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -37,6 +38,10 @@ class TechniqueReportFragment : Fragment() {
         val addItemsButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addTechnique() }
+
+        val sendDataButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
+        sendDataButton.setOnClickListener { sendTechniqueReport() }
     }
 
     private fun addTechnique() {
@@ -63,10 +68,16 @@ class TechniqueReportFragment : Fragment() {
         techniqueContainer.addView(techniqueLayout)
     }
 
+    private fun sendTechniqueReport() {
+        Toast.makeText(context, "Отправка отчета о технике", Toast.LENGTH_SHORT).show()
+    }
+
     private fun showTechniqueDialog(techniqueEditText: EditText) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_technique, null)
-        val searchTechniqueEditText = dialogView.findViewById<EditText>(R.id.searchTechniqueEditText)
-        val techniqueRecyclerView = dialogView.findViewById<RecyclerView>(R.id.techniqueRecyclerView)
+        val searchTechniqueEditText =
+            dialogView.findViewById<EditText>(R.id.searchTechniqueEditText)
+        val techniqueRecyclerView =
+            dialogView.findViewById<RecyclerView>(R.id.techniqueRecyclerView)
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .create()
@@ -78,14 +89,14 @@ class TechniqueReportFragment : Fragment() {
         techniqueRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         techniqueRecyclerView.adapter = adapter
 
-        searchTechniqueEditText.addTextChangedListener(object: TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) { }
+        searchTechniqueEditText.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
                 adapter.filter(s.toString())
             }
 
-            override fun afterTextChanged(s: Editable?) { }
+            override fun afterTextChanged(s: Editable?) {}
         })
 
         dialog.show()
