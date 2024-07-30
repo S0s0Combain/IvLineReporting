@@ -33,6 +33,7 @@ class WorkingHoursReportFragment : Fragment() {
         return inflater.inflate(R.layout.fragment_working_hours_report, container, false)
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -47,6 +48,7 @@ class WorkingHoursReportFragment : Fragment() {
         sendDataButton.setOnClickListener { sendWorkingHoursReport() }
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     private fun sendWorkingHoursReport() {
         if (!validateForm()) {
             return
@@ -234,7 +236,7 @@ class WorkingHoursReportFragment : Fragment() {
             "Сотрудник",
             "Сотрудник",
             "Сотрудник",
-            "Сотрудник",
+            "Сотрудник"
         )
     }
 }

@@ -32,7 +32,7 @@
         android:layout_gravity="center_vertical"
         tools:ignore="RtlSymmetry" />
     <EditText
-        android:id="@+id/hoursEditText"
+        android:id="@+id/quantityEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
