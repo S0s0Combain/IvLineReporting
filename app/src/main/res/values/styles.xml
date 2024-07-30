@@ -20,4 +20,13 @@
     <style name="DatePickerStyle" parent="android:Widget.Material.Light.DatePicker">
         <item name="android:headerBackground">@color/black</item>
     </style>
+    <style name="CustomAlertDialog" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/dialog_background_xml</item>
+
+        <item name="android:buttonBarButtonStyle">@style/CustomButtonStyle</item>
+    </style>
+
+    <style name="CustomButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
+        <item name="android:textColor">@android:color/black</item>
+    </style>
 </resources>
