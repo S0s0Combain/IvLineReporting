@@ -27,7 +27,7 @@ class DatePickerFragment : DialogFragment() {
 
     @SuppressLint("DefaultLocale")
     private val dateSetListener = DatePickerDialog.OnDateSetListener{ _, year, month, day ->
-        val selectedDate = String.format("%02d.%02d.%04d", day, month, year)
+        val selectedDate = String.format("%02d.%02d.%04d", day, month+1, year)
         (activity as DatePickerDialogListener).onDateSelected(selectedDate)
     }
 

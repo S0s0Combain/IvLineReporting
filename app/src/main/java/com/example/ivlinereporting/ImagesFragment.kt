@@ -66,7 +66,7 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
     }
 
     private fun showDialog() {
-        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
         dialog.setTitle("Выберите вариант")
 
         val items = arrayOf("Открыть галерею", "Открыть камеру", "Прикрепить PDF")
