@@ -33,7 +33,7 @@ class WorkingHoursReportFragment : Fragment() {
 
         titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         workersViews = mutableMapOf()
-
+        workersContainer = requireView().findViewById<LinearLayout>(R.id.workersContainer)
         val addItemsButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addWorker() }
@@ -43,19 +43,33 @@ class WorkingHoursReportFragment : Fragment() {
     }
 
     private fun sendWorkingHoursReport() {
-        val dialog = AlertDialog.Builder(requireContext())
+        if (!validateForm()) {
+            return
+        }
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
         dialog.setTitle("Отправка данных")
         dialog.setMessage("Вы уверены, что хотите отправить отчет об отработанных часах?")
-        dialog.setPositiveButton("Подтвердить") { dialog, _ ->
-            {
+        dialog.setPositiveButton("Подтвердить") { dialog, _ -> {
                 dialog.dismiss()
             }
         }
-        dialog.setNegativeButton("Отмена") { dialog, _ ->
-            {
+        dialog.setNegativeButton("Отмена") { dialog, _ -> {
                 dialog.dismiss()
             }
         }
+        dialog.show()
+    }
+
+    private fun validateForm(): Boolean {
+        if(workersContainer.childCount==0){
+            Toast.makeText(requireContext(), "Необходимо добавить хотя бы одного сотрудника", Toast.LENGTH_SHORT).show()
+            return false
+        }
+        /*val workerNames = mutableSetOf<String>()
+        for(i in 0 until workersContainer.childCount){
+            val workerLayout
+        }*/
+        return true
     }
 
     private fun addWorker() {
@@ -76,7 +90,6 @@ class WorkingHoursReportFragment : Fragment() {
             }
         }
 
-        workersContainer = requireView().findViewById<LinearLayout>(R.id.workersContainer)
         workersContainer.addView(workerLayout)
     }
 
