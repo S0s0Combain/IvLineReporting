@@ -45,6 +45,9 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
         imageRecyclerView.adapter = imageAdapter
         imageRecyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
 
+        val addItemButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        addItemButton.setOnClickListener { showDialog() }
         val sendDataButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendAttachment() }
@@ -63,7 +66,7 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
     }
 
     private fun showDialog() {
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialog)
         val titleTextView = TextView(context)
         titleTextView.text = "Выберите вариант"
         titleTextView.setPadding(20, 30, 20, 30)
