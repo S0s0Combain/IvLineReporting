@@ -1,6 +1,8 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.icu.util.Calendar
+import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -15,6 +17,7 @@ import android.widget.LinearLayout
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -32,6 +35,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         return inflater.inflate(R.layout.fragment_materials, container, false)
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
@@ -51,6 +55,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         addMaterial()
     }
 
+    @RequiresApi(Build.VERSION_CODES.N)
     override fun onSendDataClick() {
         sendMaterialsReport()
     }
@@ -78,8 +83,124 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         materialsContainer.addView(materialLayout)
     }
 
-    fun sendMaterialsReport(){
-        Toast.makeText(context, "Отправка отчета о затраченных материалах", Toast.LENGTH_SHORT).show()
+    @RequiresApi(Build.VERSION_CODES.N)
+    fun sendMaterialsReport() {
+        if (!validateForm()) {
+            return
+        }
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
+        dialog.setTitle("Отправка данных")
+        dialog.setMessage("Вы уверены, что хотите отправить отчет о выполненной работе?")
+        dialog.setPositiveButton("Подтвердить") { dialog, _ ->
+            {
+                dialog.dismiss()
+            }
+        }
+        dialog.setNegativeButton("Отмена") { dialog, _ ->
+            {
+                dialog.dismiss()
+            }
+        }
+        dialog.show()
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun validateForm(): Boolean {
+        if (materialsContainer.childCount == 0) {
+            Toast.makeText(
+                requireContext(),
+                "Необходимо указать хотя бы один материал",
+                Toast.LENGTH_SHORT
+            ).show()
+            return false
+        }
+        val materialsNames = mutableSetOf<String>()
+        for (i in 0 until materialsContainer.childCount) {
+            val materialsLayout = materialsContainer.getChildAt(i) as LinearLayout
+            val materialsEditText = materialsLayout.findViewById<EditText>(R.id.materialEditText)
+            val quantityEditText = materialsLayout.findViewById<EditText>(R.id.quantityEditText)
+
+            if (materialsEditText.text.isEmpty()) {
+                Toast.makeText(
+                    requireContext(),
+                    "Необходимо указать вид работы",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return false
+            }
+
+            if (quantityEditText.text.isEmpty()) {
+                Toast.makeText(requireContext(), "Необходимо ввести количество", Toast.LENGTH_SHORT)
+                    .show()
+                return false
+            }
+
+            if (!materialsNames.add(materialsEditText.text.toString())) {
+                Toast.makeText(
+                    requireContext(),
+                    "Виды работ не должны повторяться",
+                    Toast.LENGTH_SHORT
+                ).show()
+                return false
+            }
+        }
+
+        if (!validateActivityFields()) {
+            return false
+        }
+        return true
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun validateActivityFields(): Boolean {
+        val activity = requireActivity() as InputDataActivity
+        val dateEditText = activity.findViewById<EditText>(R.id.dateEditText)
+        val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
+
+        if (dateEditText.text.isEmpty()) {
+            Toast.makeText(requireContext(), "Необходимо ввести дату", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        if (objectEditText.text.isEmpty()) {
+            Toast.makeText(requireContext(), "Необходимо ввести объект", Toast.LENGTH_SHORT).show()
+            return false
+        }
+
+        if (!validateDate(dateEditText.text.toString())) {
+            return false
+        }
+        return true
+    }
+
+    @RequiresApi(Build.VERSION_CODES.N)
+    private fun validateDate(date: String): Boolean {
+        val selectedDate = Calendar.getInstance().apply {
+            set(Calendar.YEAR, date.substring(6).toInt())
+            set(Calendar.MONTH, date.substring(3, 5).toInt() - 1)
+            set(Calendar.DAY_OF_MONTH, date.substring(0, 2).toInt())
+        }
+        val twoDaysAgo = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_MONTH, -3)
+        }
+        val oneDayAfter = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_MONTH, 1)
+        }
+        if (!selectedDate.after(twoDaysAgo)) {
+            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
+                .setTitle("Ошибка")
+                .setMessage("Дата должна быть не более, чем на два дня раньше текущей")
+                .setPositiveButton("Ок") { dialog, _ -> { dialog.dismiss() } }.show()
+            return false
+        }
+        if (!selectedDate.before(oneDayAfter)) {
+            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
+                .setTitle("Ошибка")
+                .setMessage("Дата должна быть не более, чем на один день позже текущей")
+                .setPositiveButton("Ок") { dialog, _ -> { dialog.dismiss() } }.show()
+            return false
+        }
+        return true
     }
 
     private fun showMaterialDialog(
