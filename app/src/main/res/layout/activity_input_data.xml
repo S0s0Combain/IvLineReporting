@@ -46,7 +46,8 @@
                         android:id="@+id/textInputLayout3"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="10dp">
+                        android:layout_margin="10dp"
+                        style="@style/AppTheme.TextInputLayout">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/dateEditText"
@@ -55,20 +56,23 @@
                             android:focusable="false"
                             android:hint="@string/date"
                             android:inputType="date"
-                            android:onClick="showDatePickerDialog" />
+                            android:onClick="showDatePickerDialog"
+                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"/>
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/textInputLayout4"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="10dp">
+                        android:layout_margin="10dp"
+                        style="@style/AppTheme.TextInputLayout">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/objectEditText"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:hint="@string/Object" />
+                            android:hint="@string/Object"
+                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"/>
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>

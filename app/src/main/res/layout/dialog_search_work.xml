@@ -6,12 +6,14 @@
     android:padding="10dp">
     <com.google.android.material.textfield.TextInputLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        style="@style/AppTheme.TextInputLayout">
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/searchWorksEditText"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Поиск работ"/>
+            android:hint="@string/search_work"
+            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"/>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/worksRecyclerView"
             android:layout_width="match_parent"

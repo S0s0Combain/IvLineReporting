@@ -3,14 +3,12 @@ package com.example.ivlinereporting
 import android.app.AlertDialog
 import android.content.SharedPreferences
 import android.os.Bundle
-import androidx.fragment.app.Fragment
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.preference.Preference
+import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
+import androidx.appcompat.app.AppCompatDelegate
 
 class SettingsFragment : PreferenceFragmentCompat() {
 
@@ -42,11 +40,43 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        updateTitleColors()
+    }
+
+    private fun updateTitleColors() {
+        val isDarkMode = AppCompatDelegate.getDefaultNightMode() == AppCompatDelegate.MODE_NIGHT_YES
+        val titleColor = if (isDarkMode) {
+            getResources().getColor(R.color.yellow, null)
+        } else {
+            getResources().getColor(R.color.yellow, null)
+        }
+
+        val preferenceScreen = preferenceScreen
+        for (i in 0 until preferenceScreen.preferenceCount) {
+            val preference = preferenceScreen.getPreference(i)
+            if (preference is PreferenceCategory) {
+                preference.title = preference.title.toString()
+                preference.icon?.setTint(titleColor)
+                for (j in 0 until preference.preferenceCount) {
+                    val subPreference = preference.getPreference(j)
+                    subPreference.title = subPreference.title.toString()
+                    subPreference.icon?.setTint(titleColor)
+                }
+            } else {
+                preference.title = preference.title.toString()
+                preference.icon?.setTint(titleColor)
+            }
+        }
+    }
+
     private fun applyTheme(theme: String) {
         when (theme) {
             "light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
             "dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
         }
+        requireActivity().recreate()
     }
 
     private fun getAppVersion(): String {
