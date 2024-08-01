@@ -16,7 +16,8 @@
         android:layout_height="?attr/actionBarSize"
         android:background="@color/yellow"
         android:title="@string/setting"
-        app:title="@string/setting"/>
+        app:title="@string/setting"
+        app:titleTextColor="@color/black"/>
 
     <ScrollView
         android:layout_width="match_parent"
@@ -38,5 +39,6 @@
         app:menu="@menu/bottom_nav_menu"
         android:layout_gravity="start"
         android:background="@color/yellow"
-        app:headerLayout="@layout/nav_header"/>
+        app:headerLayout="@layout/nav_header"
+        style="@style/NavigationViewStyle"/>
 </androidx.drawerlayout.widget.DrawerLayout>

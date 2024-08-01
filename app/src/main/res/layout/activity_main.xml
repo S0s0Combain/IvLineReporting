@@ -23,7 +23,8 @@
                 android:layout_height="?attr/actionBarSize"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                style="@style/AppToolbarStyle"/>
             <ImageView
                 android:id="@+id/imageView"
                 android:layout_width="wrap_content"
@@ -34,14 +35,16 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@id/toolbar" />
 
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardView"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="4dp"
                 app:cardElevation="4dp"
+                app:cardUseCompatPadding="true"
                 app:layout_constraintBottom_toBottomOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/toolbar">
+                app:layout_constraintTop_toBottomOf="@id/toolbar"
+                style="@style/AppCardViewStyle">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -79,16 +82,17 @@
                         android:layout_gravity="end|center_vertical"
                         android:src="@drawable/digger" />
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardView2"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="4dp"
                 app:cardElevation="4dp"
                 app:cardUseCompatPadding="true"
-                app:layout_constraintTop_toBottomOf="@+id/cardView">
+                app:layout_constraintTop_toBottomOf="@+id/cardView"
+                style="@style/AppCardViewStyle">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -129,16 +133,17 @@
                         android:layout_marginEnd="5dp"
                         android:src="@drawable/clock_icon" />
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
 
-            <androidx.cardview.widget.CardView
+            <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardView3"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 app:cardCornerRadius="4dp"
                 app:cardElevation="4dp"
                 app:cardUseCompatPadding="true"
-                app:layout_constraintTop_toBottomOf="@id/cardView2">
+                app:layout_constraintTop_toBottomOf="@id/cardView2"
+                style="@style/AppCardViewStyle">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -175,7 +180,7 @@
                         android:layout_gravity="end|center_vertical"
                         android:src="@drawable/excavator_icon" />
                 </LinearLayout>
-            </androidx.cardview.widget.CardView>
+            </com.google.android.material.card.MaterialCardView>
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
     <com.google.android.material.navigation.NavigationView
@@ -186,5 +191,6 @@
         android:fitsSystemWindows="true"
         app:menu="@menu/bottom_nav_menu"
         android:background="@color/yellow"
-        app:headerLayout="@layout/nav_header"/>
+        app:headerLayout="@layout/nav_header"
+        style="@style/NavigationViewStyle"/>
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -22,6 +22,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/yellow"
+                app:titleTextColor="@color/black"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toTopOf="parent" />
@@ -31,10 +32,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:backgroundTint="@color/white"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/toolbar">
+                app:layout_constraintTop_toBottomOf="@id/toolbar"
+                style="@style/AppCardViewStyle">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -115,5 +116,6 @@
         android:background="@color/yellow"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/bottom_nav_menu" />
+        app:menu="@menu/bottom_nav_menu"
+        style="@style/NavigationViewStyle"/>
 </androidx.drawerlayout.widget.DrawerLayout>

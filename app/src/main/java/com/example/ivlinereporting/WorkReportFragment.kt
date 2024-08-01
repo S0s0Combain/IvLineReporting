@@ -37,6 +37,8 @@ class WorkReportFragment : Fragment() {
         val adapter = FragmentsAdapter(fragments, requireActivity())
         viewPager.adapter = adapter
 
+        viewPager.offscreenPageLimit = fragments.size
+
         TabLayoutMediator(tabLayout, viewPager) { tab, position ->
             tab.text = titles[position]
         }.attach()

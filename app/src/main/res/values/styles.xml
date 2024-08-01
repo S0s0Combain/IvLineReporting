@@ -33,4 +33,14 @@
     <style name="CustomButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
         <item name="android:textColor">@android:color/black</item>
     </style>
+    <style name="AppCardViewStyle">
+        <item name="cardBackgroundColor">@color/white</item>
+    </style>
+    <style name="AppNightElementsStyle">
+        <item name="android:background">@color/white</item>
+    </style>
+    <style name="NavigationViewStyle" parent="Widget.MaterialComponents.NavigationView">
+        <item name="itemTextColor">@color/black</item>
+        <item name="itemIconTint">@color/black</item>
+    </style>
 </resources>

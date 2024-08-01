@@ -30,12 +30,12 @@ class LoginActivity : AppCompatActivity() {
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_IvLineReporting)
-        super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
         val sharedPreferences: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(this)
         val theme = sharedPreferences.getString("theme", "light")
         applyTheme(theme as String)
+        setTheme(R.style.Theme_IvLineReporting)
+        super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_login)
         loginEditText = findViewById(R.id.loginEditText)
         passwordEditText = findViewById(R.id.passwordEditText)

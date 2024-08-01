@@ -5,4 +5,6 @@
     <color name="yellow">#FCEA0A</color>
     <color name="gray">#D9DBDA</color>
     <color name="light_gray">#F5F5F5</color>
+    <color name="deep_lavender">#7289DA</color>
+    <color name="dark_gray">#36393f</color>
 </resources>

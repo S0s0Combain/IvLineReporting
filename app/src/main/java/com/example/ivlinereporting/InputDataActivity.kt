@@ -3,6 +3,7 @@ package com.example.ivlinereporting
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog.OnDateSetListener
 import android.content.Context
+import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.MenuItem
@@ -41,6 +42,8 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
         setContentView(R.layout.activity_input_data)
         addItemsButton = findViewById(R.id.addItemsButton)
         sendDataButton = findViewById(R.id.sendDataButton)
+        addItemsButton.drawable.setTint(Color.BLACK)
+        sendDataButton.drawable.setTint(Color.BLACK)
         setAddItemClickListener(null)
         setSendDataClickListener(null)
         window.statusBarColor = ContextCompat.getColor(this, R.color.yellow)

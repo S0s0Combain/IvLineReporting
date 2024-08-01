@@ -7,6 +7,7 @@ import android.view.MenuItem
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.widget.Toolbar
+import androidx.core.content.ContextCompat
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
 import kotlin.system.exitProcess
@@ -26,6 +27,7 @@ class MenuHandler(
             ActionBarDrawerToggle(context, drawerLayout, toolbar, openStringRes, closeStringRes)
         drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
+        toggle.getDrawerArrowDrawable().setColor(ContextCompat.getColor(context, R.color.black));
         dialog = AlertDialog.Builder(context)
     }
 
