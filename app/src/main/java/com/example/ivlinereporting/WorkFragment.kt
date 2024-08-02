@@ -85,16 +85,31 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         dialog.setTitle("Отправка данных")
         dialog.setMessage("Вы уверены, что хотите отправить отчет о выполненной работе?")
         dialog.setPositiveButton("Подтвердить") { dialog, _ ->
-            {
                 dialog.dismiss()
+            Toast.makeText(requireContext(), "Данные отправлены успешно", Toast.LENGTH_SHORT)
+            val totalWorks = calculateTotalWorks()
+            if(totalWorks>10){
+                DialogUtils.showEncouragementDialog(requireContext(), "Отлично!", "Вы выполнили столько задач - это потрясающе!")
+            } else if (totalWorks > 5) {
+                DialogUtils.showEncouragementDialog(requireContext(), "Поздравляем!", "Вы выполнили много задач! Отличная работа!")
+            } else {
+                DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Ваш вклад в работу очень ценен!")
             }
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
-            {
                 dialog.dismiss()
-            }
         }
         dialog.show()
+    }
+
+    fun calculateTotalWorks():Int{
+        var totalWorks = 0;
+        for(i in 0 until workContainer.childCount){
+            val workLayout = workContainer.getChildAt(i) as LinearLayout
+            val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
+            totalWorks+=workEditText.text.toString().toIntOrNull()?:0
+        }
+        return totalWorks
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
