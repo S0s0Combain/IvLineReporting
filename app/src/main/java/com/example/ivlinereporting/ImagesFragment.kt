@@ -145,7 +145,7 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
             return false
         }
         if (!selectedDate.before(oneDayAfter)) {
-            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
+            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogRed)
                 .setTitle("Ошибка")
                 .setMessage("Дата должна быть не более, чем на один день позже текущей")
                 .setPositiveButton("Ок") { dialog, _ -> { dialog.dismiss() } }.show()
@@ -155,7 +155,7 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
     }
 
     private fun showDialog() {
-        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogRed)
         dialog.setTitle("Выберите вариант")
 
         val items = arrayOf("Открыть галерею", "Открыть камеру", "Прикрепить PDF")

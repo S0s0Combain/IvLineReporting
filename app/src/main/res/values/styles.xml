@@ -29,6 +29,10 @@
         <item name="android:windowBackground">@drawable/dialog_background_white</item>
         <item name="android:buttonBarButtonStyle">@style/CustomButtonStyle</item>
     </style>
+    <style name="CustomAlertDialogRed" parent="Theme.AppCompat.Light.Dialog.Alert">
+        <item name="android:windowBackground">@drawable/dialog_background_red</item>
+        <item name="android:buttonBarButtonStyle">@style/CustomButtonStyle</item>
+    </style>
     <style name="CustomButtonStyle" parent="Widget.AppCompat.Button.ButtonBar.AlertDialog">
         <item name="android:textColor">@android:color/black</item>
     </style>

@@ -187,14 +187,14 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             add(Calendar.DAY_OF_MONTH, 1)
         }
         if (!selectedDate.after(twoDaysAgo)) {
-            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
+            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogRed)
                 .setTitle("Ошибка")
                 .setMessage("Дата должна быть не более, чем на два дня раньше текущей")
                 .setPositiveButton("Ок") { dialog, _ -> { dialog.dismiss() } }.show()
             return false
         }
         if (!selectedDate.before(oneDayAfter)) {
-            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
+            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogRed)
                 .setTitle("Ошибка")
                 .setMessage("Дата должна быть не более, чем на один день позже текущей")
                 .setPositiveButton("Ок") { dialog, _ -> { dialog.dismiss() } }.show()
