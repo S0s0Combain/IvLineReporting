@@ -57,16 +57,45 @@ class WorkingHoursReportFragment : Fragment() {
         dialog.setTitle("Отправка данных")
         dialog.setMessage("Вы уверены, что хотите отправить отчет об отработанных часах?")
         dialog.setPositiveButton("Подтвердить") { dialog, _ ->
-            {
-                dialog.dismiss()
+            dialog.dismiss()
+            Toast.makeText(requireContext(), "Данные отправлены успешно", Toast.LENGTH_SHORT).show()
+
+            val averageHours = calculateAverageHours()
+            if (averageHours > 12) {
+                DialogUtils.showEncouragementDialog(
+                    requireContext(),
+                    "Вот это да!",
+                    "Отработали столько часов - это впечатляет!"
+                )
+            } else if (averageHours > 8) {
+                DialogUtils.showEncouragementDialog(
+                    requireContext(),
+                    "Поздравляем!",
+                    "Вы отработали много часов! Отличная работа!"
+                )
+            } else {
+                DialogUtils.showEncouragementDialog(
+                    requireContext(),
+                    "Спасибо!",
+                    "Ваш труд не остался незамеченным!"
+                )
             }
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
-            {
-                dialog.dismiss()
-            }
+            dialog.dismiss()
         }
         dialog.show()
+    }
+
+    private fun calculateAverageHours(): Double {
+        var totalHours = 0
+        val workerCount = workersContainer.childCount
+        for (i in 0 until workerCount) {
+            val workerLayout = workersContainer.getChildAt(i) as LinearLayout
+            val hoursEditText = workerLayout.findViewById<EditText>(R.id.hoursEditText)
+            totalHours += hoursEditText.text.toString().toIntOrNull() ?: 0
+        }
+        return if (workerCount > 0) totalHours.toDouble() / workerCount else 0.0
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -185,7 +214,8 @@ class WorkingHoursReportFragment : Fragment() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_worker, null)
         val searchWorkerEditText = dialogView.findViewById<EditText>(R.id.searchWorkerEditText)
         val workersRecyclerView = dialogView.findViewById<RecyclerView>(R.id.workersRecyclerView)
-        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogWhite).setView(dialogView).create()
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogWhite)
+            .setView(dialogView).create()
 
         val adapter = WorkerAdapter(getWorkersNames()) { selectedWorker ->
             workerEditText.setText(selectedWorker)
