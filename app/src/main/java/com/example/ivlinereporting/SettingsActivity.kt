@@ -3,6 +3,7 @@ package com.example.ivlinereporting
 import android.annotation.SuppressLint
 import android.os.Bundle
 import android.view.MenuItem
+import android.view.View
 import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -42,5 +43,9 @@ class SettingsActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return menuHandler.onOptionsItemSelected(item) || super.onOptionsItemSelected(item)
+    }
+
+    fun backButton_onClick(v: View){
+        onBackPressed()
     }
 }

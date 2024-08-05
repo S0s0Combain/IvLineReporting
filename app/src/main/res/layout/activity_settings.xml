@@ -21,7 +21,8 @@
 
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent">
+        android:layout_height="0dp"
+        android:layout_weight="1">
 
         <LinearLayout
             android:id="@+id/settingsContainer"
@@ -29,6 +30,13 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"/>
     </ScrollView>
+        <com.google.android.material.button.MaterialButton
+            android:text="@string/back"
+            style="@style/AppButtonStyle"
+            android:textSize="18sp"
+            android:layout_gravity="center"
+            android:layout_marginBottom="20dp"
+            android:onClick="backButton_onClick"/>
     </LinearLayout>
 
     <com.google.android.material.navigation.NavigationView

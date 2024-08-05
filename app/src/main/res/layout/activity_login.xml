@@ -40,7 +40,7 @@
                 android:layout_height="match_parent"
                 android:hint="@string/login"
                 style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
-                android:inputType="text" />
+                android:inputType="textNoSuggestions" />
         </com.google.android.material.textfield.TextInputLayout>
 
         <com.google.android.material.textfield.TextInputLayout

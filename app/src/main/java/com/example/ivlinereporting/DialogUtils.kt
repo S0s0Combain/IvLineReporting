@@ -2,6 +2,7 @@ package com.example.ivlinereporting
 
 import android.app.AlertDialog
 import android.content.Context
+import android.content.Intent
 import android.view.LayoutInflater
 import android.view.animation.AnimationUtils
 import android.widget.Button
@@ -29,6 +30,8 @@ object DialogUtils {
 
         okButton.setOnClickListener {
             dialogView.startAnimation(fadeOut)
+            val intent = Intent(context, MainActivity::class.java)
+            context.startActivity(intent)
             dialog.dismiss()
         }
         dialog.show()

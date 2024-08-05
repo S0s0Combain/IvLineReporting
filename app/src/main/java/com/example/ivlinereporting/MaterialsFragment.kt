@@ -92,14 +92,12 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         dialog.setTitle("Отправка данных")
         dialog.setMessage("Вы уверены, что хотите отправить отчет о выполненной работе?")
         dialog.setPositiveButton("Подтвердить") { dialog, _ ->
-            {
-                dialog.dismiss()
-            }
+            dialog.dismiss()
+            Toast.makeText(requireContext(), "Данные отправлены успешно", Toast.LENGTH_SHORT).show()
+            DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Вы тщательно отследили использование материалов! Ваша внимательнность к деталям не осталась незамеченной!")
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
-            {
-                dialog.dismiss()
-            }
+            dialog.dismiss()
         }
         dialog.show()
     }
@@ -135,20 +133,22 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
                 return false
             }
 
+            if(quantityEditText.text.toString().toInt()<1){
+                Toast.makeText(requireContext(), "Количество должно быть больше 1", Toast.LENGTH_SHORT).show()
+            }
+
             if (!materialsNames.add(materialsEditText.text.toString())) {
                 Toast.makeText(
                     requireContext(),
-                    "Виды работ не должны повторяться",
+                    "Виды материалов не должны повторяться",
                     Toast.LENGTH_SHORT
                 ).show()
                 return false
             }
         }
 
-        if (!validateActivityFields()) {
-            return false
-        }
-        return true
+
+        return validateActivityFields()
     }
 
     @RequiresApi(Build.VERSION_CODES.N)

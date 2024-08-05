@@ -65,7 +65,7 @@ class WorkingHoursReportFragment : Fragment() {
                 DialogUtils.showEncouragementDialog(
                     requireContext(),
                     "Вот это да!",
-                    "Отработали столько часов - это впечатляет!"
+                    "Ваш упорный труд и преданность делу просто поразительны!"
                 )
             } else if (averageHours > 8) {
                 DialogUtils.showEncouragementDialog(
@@ -131,12 +131,13 @@ class WorkingHoursReportFragment : Fragment() {
                 ).show()
                 return false
             }
+
+            if(hoursEditText.text.toString().toInt()<1 || hoursEditText.text.toString().toInt()>24){
+                Toast.makeText(requireContext(), "Количество часов может быть от 1 до 24", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        if (!validateActivityFields()) {
-            return false
-        }
-        return true
+        return validateActivityFields()
     }
 
     @RequiresApi(Build.VERSION_CODES.N)

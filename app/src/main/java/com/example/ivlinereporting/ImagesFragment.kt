@@ -91,8 +91,12 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun validateForm(): Boolean {
-        if(imageRecyclerView.childCount == 0){
-            Toast.makeText(requireContext(), "Необходимо добавить хотя бы одно вложение", Toast.LENGTH_SHORT).show()
+        if (imageRecyclerView.childCount == 0) {
+            Toast.makeText(
+                requireContext(),
+                "Необходимо добавить хотя бы одно вложение",
+                Toast.LENGTH_SHORT
+            ).show()
             return false
         }
         if (!validateActivityFields()) {
@@ -141,21 +145,30 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
             AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
                 .setTitle("Ошибка")
                 .setMessage("Дата должна быть не более, чем на два дня раньше текущей")
-                .setPositiveButton("Ок") { dialog, _ -> { dialog.dismiss() } }.show()
+                .setPositiveButton("Ок") { dialog, _ ->
+                    dialog.dismiss()
+                    Toast.makeText(
+                        requireContext(),
+                        "Данные отправлены успешно",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Ваша организованность в работе с файлами впечатляет!")
+                }
+                .show()
             return false
         }
         if (!selectedDate.before(oneDayAfter)) {
             AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogRed)
                 .setTitle("Ошибка")
                 .setMessage("Дата должна быть не более, чем на один день позже текущей")
-                .setPositiveButton("Ок") { dialog, _ -> { dialog.dismiss() } }.show()
+                .setPositiveButton("Ок") { dialog, _ -> dialog.dismiss() }.show()
             return false
         }
         return true
     }
 
     private fun showDialog() {
-        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogRed)
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
         dialog.setTitle("Выберите вариант")
 
         val items = arrayOf("Открыть галерею", "Открыть камеру", "Прикрепить PDF")

@@ -80,14 +80,16 @@ class TechniqueReportFragment : Fragment() {
         dialog.setTitle("Отправка данных")
         dialog.setMessage("Вы уверены, что хотите отправить отчет о технике?")
         dialog.setPositiveButton("Подтвердить") { dialog, _ ->
-            {
-                dialog.dismiss()
-            }
+            dialog.dismiss()
+            Toast.makeText(requireContext(), "Данные отправлены успешно", Toast.LENGTH_SHORT).show()
+            DialogUtils.showEncouragementDialog(
+                requireContext(),
+                "Спасибо!",
+                "Вы тщательно отследили использование техники! Отличная работа!"
+            )
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
-            {
-                dialog.dismiss()
-            }
+            dialog.dismiss()
         }
         dialog.show()
     }
@@ -125,12 +127,13 @@ class TechniqueReportFragment : Fragment() {
                 ).show()
                 return false
             }
+
+            if (quantityEditText.text.toString().toInt() < 1) {
+                Toast.makeText(requireContext(), "Количество часов / рейсов должно быть больше 1", Toast.LENGTH_SHORT).show()
+            }
         }
 
-        if (!validateActivityFields()) {
-            return false
-        }
-        return true
+        return validateActivityFields()
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
