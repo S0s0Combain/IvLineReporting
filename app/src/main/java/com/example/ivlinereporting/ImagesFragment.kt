@@ -77,14 +77,13 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
         dialog.setTitle("Отправка данных")
         dialog.setMessage("Вы уверены, что хотите отправить отчет о выполненной работе?")
         dialog.setPositiveButton("Подтвердить") { dialog, _ ->
-            {
                 dialog.dismiss()
-            }
+            DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Ваша организованность в работе с файлами впечатляет!")
+            imageAdapter.clearImages()
+            imageAdapter.notifyDataSetChanged()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
-            {
                 dialog.dismiss()
-            }
         }
         dialog.show()
     }
@@ -152,7 +151,6 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
                         "Данные отправлены успешно",
                         Toast.LENGTH_SHORT
                     ).show()
-                    DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Ваша организованность в работе с файлами впечатляет!")
                 }
                 .show()
             return false

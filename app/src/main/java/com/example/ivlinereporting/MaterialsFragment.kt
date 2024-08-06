@@ -95,6 +95,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             dialog.dismiss()
             Toast.makeText(requireContext(), "Данные отправлены успешно", Toast.LENGTH_SHORT).show()
             DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Вы тщательно отследили использование материалов! Ваша внимательнность к деталям не осталась незамеченной!")
+            materialsContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
             dialog.dismiss()

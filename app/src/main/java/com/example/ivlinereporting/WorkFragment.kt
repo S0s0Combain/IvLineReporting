@@ -95,6 +95,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
             } else {
                 DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Ваш вклад в работу очень ценен!")
             }
+            workContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
                 dialog.dismiss()
@@ -103,13 +104,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
     }
 
     fun calculateTotalWorks():Int{
-        var totalWorks = 0;
-        for(i in 0 until workContainer.childCount){
-            val workLayout = workContainer.getChildAt(i) as LinearLayout
-            val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
-            totalWorks+=workEditText.text.toString().toIntOrNull()?:0
-        }
-        return totalWorks
+        return workContainer.childCount
     }
 
     @RequiresApi(Build.VERSION_CODES.N)

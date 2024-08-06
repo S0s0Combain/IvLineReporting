@@ -129,4 +129,8 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
         }
         return super.dispatchTouchEvent(ev)
     }
+
+    fun backButton_onClick(v: View){
+        onBackPressed()
+    }
 }

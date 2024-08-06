@@ -87,6 +87,8 @@ class TechniqueReportFragment : Fragment() {
                 "Спасибо!",
                 "Вы тщательно отследили использование техники! Отличная работа!"
             )
+            titleLinearLayout.visibility = View.INVISIBLE
+            techniqueContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
             dialog.dismiss()

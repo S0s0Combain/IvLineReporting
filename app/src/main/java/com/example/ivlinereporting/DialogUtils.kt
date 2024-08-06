@@ -30,8 +30,6 @@ object DialogUtils {
 
         okButton.setOnClickListener {
             dialogView.startAnimation(fadeOut)
-            val intent = Intent(context, MainActivity::class.java)
-            context.startActivity(intent)
             dialog.dismiss()
         }
         dialog.show()

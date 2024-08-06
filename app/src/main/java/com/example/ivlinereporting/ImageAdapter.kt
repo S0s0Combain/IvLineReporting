@@ -105,6 +105,11 @@ class ImageAdapter(private val items: MutableList<Any>) :
         notifyItemInserted(items.size - 1)
     }
 
+    fun clearImages(){
+        items.clear()
+        notifyDataSetChanged()
+    }
+
     private fun showImageDialog(context: Context, image: Bitmap){
         val dialog = Dialog(context, android.R.style.Theme_Black_NoTitleBar)
         dialog.setContentView(R.layout.dialog_image_view)

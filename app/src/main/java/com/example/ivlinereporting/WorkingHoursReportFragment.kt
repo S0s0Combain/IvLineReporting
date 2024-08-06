@@ -80,6 +80,8 @@ class WorkingHoursReportFragment : Fragment() {
                     "Ваш труд не остался незамеченным!"
                 )
             }
+            titleLinearLayout.visibility = View.INVISIBLE
+            workersContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
             dialog.dismiss()
