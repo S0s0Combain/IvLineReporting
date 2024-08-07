@@ -122,7 +122,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             if (materialsEditText.text.isEmpty()) {
                 Toast.makeText(
                     requireContext(),
-                    "Необходимо указать вид работы",
+                    "Необходимо указать название материала",
                     Toast.LENGTH_SHORT
                 ).show()
                 return false
@@ -136,6 +136,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
             if(quantityEditText.text.toString().toInt()<1){
                 Toast.makeText(requireContext(), "Количество должно быть больше 1", Toast.LENGTH_SHORT).show()
+                return false
             }
 
             if (!materialsNames.add(materialsEditText.text.toString())) {
@@ -147,8 +148,6 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
                 return false
             }
         }
-
-
         return validateActivityFields()
     }
 

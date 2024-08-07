@@ -132,6 +132,7 @@ class TechniqueReportFragment : Fragment() {
 
             if (quantityEditText.text.toString().toInt() < 1) {
                 Toast.makeText(requireContext(), "Количество часов / рейсов должно быть больше 1", Toast.LENGTH_SHORT).show()
+                return false
             }
         }
 

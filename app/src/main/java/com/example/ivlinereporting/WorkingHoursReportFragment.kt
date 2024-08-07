@@ -136,6 +136,7 @@ class WorkingHoursReportFragment : Fragment() {
 
             if(hoursEditText.text.toString().toInt()<1 || hoursEditText.text.toString().toInt()>24){
                 Toast.makeText(requireContext(), "Количество часов может быть от 1 до 24", Toast.LENGTH_SHORT).show()
+                return false
             }
         }
 
