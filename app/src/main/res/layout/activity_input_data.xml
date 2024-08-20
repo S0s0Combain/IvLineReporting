@@ -22,20 +22,20 @@
                 android:layout_width="match_parent"
                 android:layout_height="?attr/actionBarSize"
                 android:background="@color/yellow"
-                app:titleTextColor="@color/black"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toTopOf="parent" />
+                app:layout_constraintTop_toTopOf="parent"
+                app:titleTextColor="@color/black" />
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/materialCardView"
+                style="@style/AppCardViewStyle"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/toolbar"
-                style="@style/AppCardViewStyle">
+                app:layout_constraintTop_toBottomOf="@id/toolbar">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -44,35 +44,35 @@
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/textInputLayout3"
+                        style="@style/AppTheme.TextInputLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="10dp"
-                        style="@style/AppTheme.TextInputLayout">
+                        android:layout_margin="10dp">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/dateEditText"
+                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
                             android:focusable="false"
                             android:hint="@string/date"
                             android:inputType="date"
-                            android:onClick="showDatePickerDialog"
-                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"/>
+                            android:onClick="showDatePickerDialog" />
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
                         android:id="@+id/textInputLayout4"
+                        style="@style/AppTheme.TextInputLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_margin="10dp"
-                        style="@style/AppTheme.TextInputLayout">
+                        android:layout_margin="10dp">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/objectEditText"
+                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"
                             android:layout_width="match_parent"
                             android:layout_height="match_parent"
-                            android:hint="@string/Object"
-                            style="@style/Widget.Material3.TextInputEditText.OutlinedBox"/>
+                            android:hint="@string/Object" />
                     </com.google.android.material.textfield.TextInputLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
@@ -109,30 +109,31 @@
                 app:borderWidth="2dp"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintEnd_toEndOf="parent" />
+
             <com.google.android.material.floatingactionbutton.FloatingActionButton
                 android:id="@+id/backButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="16dp"
                 android:backgroundTint="@color/yellow"
+                android:onClick="backButton_onClick"
                 android:src="@drawable/baseline_arrow_back_24"
                 app:backgroundTint="@color/black"
                 app:borderWidth="2dp"
-                android:onClick="backButton_onClick"
                 app:layout_constraintBottom_toBottomOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
-                app:tint="@color/black"/>
+                app:tint="@color/black" />
         </androidx.constraintlayout.widget.ConstraintLayout>
     </ScrollView>
 
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navView"
+        style="@style/NavigationViewStyle"
         android:layout_width="wrap_content"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:background="@color/yellow"
         android:fitsSystemWindows="true"
         app:headerLayout="@layout/nav_header"
-        app:menu="@menu/bottom_nav_menu"
-        style="@style/NavigationViewStyle"/>
+        app:menu="@menu/bottom_nav_menu" />
 </androidx.drawerlayout.widget.DrawerLayout>

@@ -40,7 +40,10 @@ class MenuHandler(
 
     fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.nav_help -> {}
+            R.id.nav_help -> {
+                val intent = Intent(context, HelpActivity::class.java)
+                context.startActivity(intent)
+            }
             R.id.nav_settings -> {
                 val intent = Intent(context, SettingsActivity::class.java)
                 context.startActivity(intent)
