@@ -1,34 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<PreferenceScreen xmlns:tools="http://schemas.android.com/tools"
-    xmlns:android="http://schemas.android.com/apk/res/android">
+<PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
     <PreferenceCategory android:title="Тема">
         <ListPreference
-            android:key="theme"
-            android:title="Выберите тему"
+            android:defaultValue="light"
             android:entries="@array/theme_entries"
             android:entryValues="@array/theme_values"
-            android:defaultValue="light" />
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="О приложении">
-        <Preference
-            android:title="Имя приложения"
-            android:summary="Мое приложение"
-            android:key="app_name" />
-        <Preference
-            android:title="Версия"
-            android:summary="1.0"
-            android:key="app_version"/>
-        <Preference
-            android:title="Разработчик"
-            android:summary="Кудринский Артем"
-            android:key="app_developer"/>
-    </PreferenceCategory>
-
-    <PreferenceCategory android:title="Помощь">
-        <Preference
-            android:title="Помощь"
-            android:summary="Контактная информация"
-            android:key="help" />
+            android:key="theme"
+            android:title="Выберите тему" />
     </PreferenceCategory>
 </PreferenceScreen>

@@ -33,21 +33,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
             applyTheme(newValue as String)
             true
         }
-
-        val appNamePreference: Preference? = findPreference("app_name")
-        appNamePreference?.summary = getString(R.string.app_name)
-
-        val appVersionPreference: Preference? = findPreference("app_version")
-        appVersionPreference?.summary = getAppVersion()
-
-        val appDeveloperPreference: Preference? = findPreference("app_developer")
-        appDeveloperPreference?.summary = "Кудринский Артем"
-
-        val helpPreference: Preference? = findPreference("help")
-        helpPreference?.setOnPreferenceClickListener {
-            showHelpDialog()
-            true
-        }
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -88,54 +73,4 @@ class SettingsFragment : PreferenceFragmentCompat() {
         }
         requireActivity().recreate()
     }
-
-    private fun getAppVersion(): String {
-        val packageInfo =
-            requireContext().packageManager.getPackageInfo(requireContext().packageName, 0)
-        return packageInfo.versionName
-    }
-
-    private fun showHelpDialog() {
-        val helpText = "Если у вас возникли проблемы при использовании приложения, пожалуйста, обратитесь по адресу "
-        val emailAddress = "dev.assist@.yandex.ru"
-        val fullText = "$helpText$emailAddress"
-
-        val spannableString = SpannableString(fullText)
-        val clickableSpan = object : ClickableSpan() {
-            override fun onClick(widget: View) {
-                val intent = Intent(Intent.ACTION_SEND).apply {
-                    type = "text/plain"
-                    putExtra(Intent.EXTRA_EMAIL, arrayOf(emailAddress))
-                    putExtra(Intent.EXTRA_SUBJECT, "Помощь по приложению")
-                    putExtra(Intent.EXTRA_TEXT, "Здравствуйте, \n\nУ меня возникли проблемы с использованием приложения...")
-                }
-                if (intent.resolveActivity(requireContext().packageManager) != null) {
-                    startActivity(intent)
-                } else {
-                    Toast.makeText(requireContext(), "Нет приложения для отправки почты", Toast.LENGTH_SHORT).show()
-                }
-            }
-
-            override fun updateDrawState(ds: TextPaint) {
-                super.updateDrawState(ds)
-                ds.isUnderlineText = false
-                ds.color = ContextCompat.getColor(requireContext(), android.R.color.holo_blue_light)
-            }
-        }
-
-        spannableString.setSpan(clickableSpan, helpText.length, fullText.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
-
-        val dialog = AlertDialog.Builder(requireContext())
-        dialog.setTitle("Помощь")
-        dialog.setMessage(spannableString)
-        dialog.setPositiveButton("Ок") { dialog, _ -> dialog.dismiss() }
-
-        val alertDialog = dialog.create()
-        alertDialog.show()
-
-        // Сделать текст кликабельным
-        val messageView = alertDialog.findViewById<TextView>(android.R.id.message)
-        messageView?.movementMethod = LinkMovementMethod.getInstance()
-    }
-
 }

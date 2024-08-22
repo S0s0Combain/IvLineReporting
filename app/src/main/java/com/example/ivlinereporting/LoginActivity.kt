@@ -99,7 +99,7 @@ class LoginActivity : AppCompatActivity() {
 
         progressDialog.show()
         Thread {
-            if (authentificateUser(currentLogin, currentPassword)) {
+//            if (authentificateUser(currentLogin, currentPassword)) {
                 val savedLogin = loadLogin()
                 if (savedLogin == null || savedLogin != currentLogin) {
                     runOnUiThread {
@@ -113,12 +113,12 @@ class LoginActivity : AppCompatActivity() {
                         startActivity(intent)
                     }
                 }
-            } else{
-                runOnUiThread{
-                    progressDialog.dismiss()
-                    Toast.makeText(applicationContext, "Неверный логин или пароль", Toast.LENGTH_SHORT).show()
-                }
-            }
+//            } else{
+//                runOnUiThread{
+//                    progressDialog.dismiss()
+//                    Toast.makeText(applicationContext, "Неверный логин или пароль", Toast.LENGTH_SHORT).show()
+//                }
+//            }
         }.start()
     }
 
@@ -160,7 +160,6 @@ class LoginActivity : AppCompatActivity() {
 
         try{
             val connection: java.sql.Connection = DriverManager.getConnection(url, user, pass)
-            val statement: Statement = connection.createStatement()
             val callableStatement = connection.prepareCall("{call dbo.AuthentificateUser(?, ?, ?)}")
             callableStatement.setString(1, login)
             callableStatement.setString(2, password)

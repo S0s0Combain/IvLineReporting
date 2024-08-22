@@ -1,11 +1,10 @@
 import android.content.Context
 import android.graphics.Typeface
+import android.text.method.LinkMovementMethod
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
-import android.widget.FrameLayout
-import android.widget.ImageView
 import android.widget.TextView
 import com.example.ivlinereporting.R
 
@@ -52,16 +51,13 @@ class HelpAdapter(private val context: Context, private val listDataHeader: List
     }
 
     override fun getChildView(groupPosition: Int, childPosition: Int, isLastChild: Boolean, convertView: View?, parent: ViewGroup?): View {
-        val childText = getChild(groupPosition, childPosition) as HelpItem
         val inflater = context.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         val convertView = inflater.inflate(R.layout.list_item, null)
 
+        val childText = getChild(groupPosition, childPosition) as HelpItem
         val txtListChild = convertView.findViewById<TextView>(R.id.lblListItem)
         txtListChild.text = childText.text
-
-        val detailContainer = convertView.findViewById<FrameLayout>(R.id.detailContainer)
-        detailContainer.removeAllViews()
-        detailContainer.visibility = View.GONE
+        txtListChild.movementMethod = LinkMovementMethod.getInstance()
 
         return convertView
     }
@@ -71,4 +67,4 @@ class HelpAdapter(private val context: Context, private val listDataHeader: List
     }
 }
 
-data class HelpItem(val text: String, val layoutResId: Int)
+data class HelpItem(val text: CharSequence, val layoutResId: Int)
