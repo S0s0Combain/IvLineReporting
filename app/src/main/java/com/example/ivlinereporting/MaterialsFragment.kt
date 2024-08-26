@@ -265,7 +265,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             dialogView.findViewById<EditText>(R.id.searchMaterialsEditText)
         val materialsRecyclerView =
             dialogView.findViewById<RecyclerView>(R.id.materialsRecyclerView)
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogWhite)
             .setView(dialogView)
             .create()
 
@@ -316,10 +316,5 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             parameterViews?.put(parameter, parameterValueSpinner)
             materialParametersContainer.addView(parameterLayout)
         }
-    }
-
-
-    private fun getParameterValues(parameterName: String, materialName: String): List<String> {
-        return materialParameters[materialName]?.get(parameterName) ?: listOf()
     }
 }

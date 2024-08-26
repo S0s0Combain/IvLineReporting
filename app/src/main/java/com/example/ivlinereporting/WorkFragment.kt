@@ -225,7 +225,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_work, null)
         val searchWorksEditText = dialogView.findViewById<EditText>(R.id.searchWorksEditText)
         val worksRecyclerView = dialogView.findViewById<RecyclerView>(R.id.worksRecyclerView)
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogWhite)
             .setView(dialogView)
             .create()
 
@@ -311,10 +311,5 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
             dbConnection.closeConnection(connection)
             Pair(works, workParameters)
         }
-    }
-
-
-    private fun getParameterValues(parameterName: String, workName: String): List<String> {
-        return workParameters[workName]?.get(parameterName) ?: listOf()
     }
 }

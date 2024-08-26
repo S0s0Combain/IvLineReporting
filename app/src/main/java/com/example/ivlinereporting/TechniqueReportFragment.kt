@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -13,6 +14,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.Spinner
 import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.core.view.isInvisible
@@ -23,6 +25,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.sql.Connection
 
 class TechniqueReportFragment : Fragment() {
@@ -99,6 +104,7 @@ class TechniqueReportFragment : Fragment() {
                 "Спасибо!",
                 "Вы тщательно отследили использование техники! Отличная работа!"
             )
+            createSpreadsheetMLFile()
             titleLinearLayout.visibility = View.INVISIBLE
             techniqueContainer.removeAllViews()
         }
@@ -106,6 +112,101 @@ class TechniqueReportFragment : Fragment() {
             dialog.dismiss()
         }
         dialog.show()
+    }
+
+    private fun createSpreadsheetMLFile() {
+        val activity = requireActivity() as InputDataActivity
+        val dateEditText = activity.findViewById<EditText>(R.id.dateEditText)
+        val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
+        val date = dateEditText.text.toString()
+        val obj = objectEditText.text.toString()
+
+        val file = File(requireContext().filesDir, "technique_report.xml")
+        val outputStream = FileOutputStream(file)
+        val writer = OutputStreamWriter(outputStream, "UTF-8")
+
+        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
+        writer.write("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        writer.write("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
+        writer.write("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
+        writer.write("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        writer.write("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
+        writer.write("  <Worksheet ss:Name=\"Техника\">\n")
+        writer.write("    <Table>\n")
+
+        writer.write("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
+        writer.write("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
+        writer.write("      <Column ss:Width=\"${calculateColumnWidthForTechniques()}\"/>\n")
+        writer.write("      <Column ss:Width=\"${calculateColumnWidthForWorkTypes()}\"/>\n")
+        writer.write("      <Column ss:Width=\"50\"/>\n")
+
+        writer.write("      <Row>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Техника</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Тип работы</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Количество</Data></Cell>\n")
+        writer.write("      </Row>\n")
+
+        val techniqueCount = techniqueContainer.childCount
+        for (i in 0 until techniqueCount) {
+            val techniqueLayout = techniqueContainer.getChildAt(i) as LinearLayout
+            val techniqueEditText = techniqueLayout.findViewById<EditText>(R.id.techniqueEditText)
+            val timeTypeSpinner = techniqueLayout.findViewById<Spinner>(R.id.timeType)
+            val quantityEditText = techniqueLayout.findViewById<EditText>(R.id.quantityEditText)
+
+            writer.write("      <Row>\n")
+            if (i == 0) {
+                writer.write("        <Cell ss:MergeDown=\"${techniqueCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
+                writer.write("        <Cell ss:MergeDown=\"${techniqueCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
+            }
+            writer.write("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${techniqueEditText.text}</Data></Cell>\n")
+            writer.write("        <Cell><Data ss:Type=\"String\">${timeTypeSpinner.selectedItem}</Data></Cell>\n")
+            writer.write("        <Cell><Data ss:Type=\"Number\">${quantityEditText.text}</Data></Cell>\n")
+            writer.write("      </Row>\n")
+        }
+
+        writer.write("    </Table>\n")
+        writer.write("  </Worksheet>\n")
+        writer.write("</Workbook>\n")
+
+        writer.close()
+        outputStream.close()
+
+        Log.i("fileTag", "Файл SpreadsheetML создан: ${file.absolutePath}")
+    }
+
+    private fun calculateColumnWidth(text: String): Int {
+        val averageCharWidth = 8
+        return text.length * averageCharWidth
+    }
+
+    private fun calculateColumnWidthForTechniques(): Int {
+        var maxLength = 0
+        for (i in 0 until techniqueContainer.childCount) {
+            val techniqueLayout = techniqueContainer.getChildAt(i) as LinearLayout
+            val techniqueEditText = techniqueLayout.findViewById<EditText>(R.id.techniqueEditText)
+            val techniqueName = techniqueEditText.text.toString()
+            if (techniqueName.length > maxLength) {
+                maxLength = techniqueName.length
+            }
+        }
+        val averageCharWidth = 8
+        return maxLength * averageCharWidth
+    }
+
+    private fun calculateColumnWidthForWorkTypes(): Int {
+        var maxLength = 0
+        for (i in 0 until techniqueContainer.childCount) {
+            val techniqueLayout = techniqueContainer.getChildAt(i) as LinearLayout
+            val timeTypeSpinner = techniqueLayout.findViewById<Spinner>(R.id.timeType)
+            val workTypeName = timeTypeSpinner.selectedItem.toString()
+            if (workTypeName.length > maxLength) {
+                maxLength = workTypeName.length
+            }
+        }
+        val averageCharWidth = 8
+        return maxLength * averageCharWidth
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -205,7 +306,7 @@ class TechniqueReportFragment : Fragment() {
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_technique, null)
         val searchTechniqueEditText = dialogView.findViewById<EditText>(R.id.searchTechniqueEditText)
         val techniqueRecyclerView = dialogView.findViewById<RecyclerView>(R.id.techniqueRecyclerView)
-        val dialog = AlertDialog.Builder(requireContext())
+        val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogWhite)
             .setView(dialogView)
             .create()
 

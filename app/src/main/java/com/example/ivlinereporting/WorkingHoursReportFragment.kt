@@ -78,8 +78,12 @@ class WorkingHoursReportFragment : Fragment() {
             val otherBrigadeWorkers = mutableListOf<String>()
             val noBrigadeWorkers = mutableListOf<String>()
 
+            val userCode =
+                requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                    .getString("code", null) ?: ""
+
             val workersStatement =
-                connection.prepareStatement("SELECT s.фамилия, s.имя, s.отчество, b.номер_бригады FROM сотрудники s LEFT JOIN бригады_сотрудники bs ON s.код = bs.код_сотрудника LEFT JOIN бригады b ON bs.код_бригады = b.код ORDER BY b.номер_бригады, s.фамилия, s.имя, s.отчество")
+                connection.prepareStatement("SELECT с.фамилия, с.имя, с.отчество, б.номер_бригады, б.код_бригадира FROM сотрудники с LEFT JOIN бригады_сотрудники бс ON с.код = бс.код_сотрудника LEFT JOIN бригады б ON бс.код_бригады = б.код ORDER BY б.номер_бригады, с.фамилия, с.имя, с.отчество")
             val workersResultSet = workersStatement.executeQuery()
             while (workersResultSet.next()) {
                 val workerName =
@@ -87,7 +91,9 @@ class WorkingHoursReportFragment : Fragment() {
                         workersResultSet.getString("отчество") ?: ""
                     }"
                 val workerBrigade = workersResultSet.getString("номер_бригады")
-                if (workerBrigade == brigadeType) {
+                val brigadeLeaderCode = workersResultSet.getString("код_бригадира")
+
+                if (brigadeLeaderCode == userCode) {
                     userBrigadeWorkers.add(workerName)
                 } else if (workerBrigade != null) {
                     otherBrigadeWorkers.add(workerName)
@@ -382,17 +388,5 @@ class WorkingHoursReportFragment : Fragment() {
         })
 
         dialog.show()
-        //adjustDialogSize(dialog, adapter.itemCount)
-    }
-
-    fun adjustDialogSize(dialog: AlertDialog, itemCount: Int) {
-        val window = dialog.window
-        val layoutParams = window?.attributes
-        val maxHeight = (resources.displayMetrics.heightPixels * 0.8).toInt()
-        val itemHeight = 50
-        val desiredHeight = itemHeight * itemCount + 100
-
-        layoutParams?.height = if (desiredHeight > maxHeight) maxHeight else desiredHeight
-        window?.attributes = layoutParams
     }
 }

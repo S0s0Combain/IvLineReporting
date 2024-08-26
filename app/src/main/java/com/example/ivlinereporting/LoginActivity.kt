@@ -7,7 +7,6 @@ import android.content.SharedPreferences
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -88,8 +87,8 @@ class LoginActivity : AppCompatActivity() {
             val result = authentificateUser(currentLogin, currentPassword)
             withContext(Dispatchers.Main) {
                 if (result) {
-                    val brigadeType = getBrigadeType(currentLogin)
-                    saveUserData(currentLogin, brigadeType.toString())
+                    val (code, brigadeType) = getUserData(currentLogin)
+                    saveUserData(currentLogin, code, brigadeType.toString())
                     val savedLogin = loadLogin()
                     if (savedLogin == null || savedLogin != currentLogin) {
                         showSaveLoginDialog(currentLogin)
@@ -138,29 +137,32 @@ class LoginActivity : AppCompatActivity() {
         return sharedPreferences.getString("saved_login", null)
     }
 
-    private fun saveUserData(login: String, brigadeType: String){
+    private fun saveUserData(login: String, code: Int?, brigadeType: String){
         val sharedPreferences: SharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putString("login", login)
+        editor.putString("code", code.toString())
         editor.putString("brigade_type", brigadeType)
         editor.apply()
     }
 
-    private suspend fun getBrigadeType(login: String):String?{
+    private suspend fun getUserData(login: String): Pair<Int?, String?>{
         return withContext(Dispatchers.IO) {
             val dbConnection = DatabaseConnection()
             var brigadeType: String? = null
+            var code: Int? = null
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
             val connection: Connection = dbConnection.createConnection()
             val preparedStatement =
-                connection.prepareStatement("SELECT вид_бригады FROM бригады WHERE код_бригадира = (SELECT код FROM пользователи WHERE логин = ?)")
+                connection.prepareStatement("SELECT б.вид_бригады, п.код FROM бригады б JOIN пользователи п ON б.код_бригадира = п.код WHERE п.логин = ?")
             preparedStatement.setString(1, login)
             val resultSet = preparedStatement.executeQuery()
             if (resultSet.next()) {
                 brigadeType = resultSet.getString("вид_бригады")
+                code = resultSet.getInt("код")
             }
             dbConnection.closeConnection(connection)
-            brigadeType
+            Pair(code, brigadeType)
         }
     }
 
