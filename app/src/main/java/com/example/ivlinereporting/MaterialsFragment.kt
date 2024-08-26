@@ -21,11 +21,18 @@ import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.sql.Connection
 
 class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
     lateinit var materialsContainer: LinearLayout
     private lateinit var materialViews: MutableMap<String, EditText>
     private lateinit var materialParametersViews: MutableMap<String, MutableMap<String, Spinner>>
+    private lateinit var materials: List<String>
+    private lateinit var materialParameters: Map<String, Map<String, List<String>>>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -49,7 +56,53 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         val sendDataButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendMaterialsReport() }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val (materialList, materialParametersMap) = getMaterialsAndParametersFromDB()
+            withContext(Dispatchers.Main){
+                materials = materialList
+                materialParameters = materialParametersMap
+            }
+        }
     }
+
+    private suspend fun getMaterialsAndParametersFromDB(): Pair<List<String>, Map<String, Map<String, List<String>>>> {
+        return withContext(Dispatchers.IO) {
+            val dbConnection = DatabaseConnection()
+            Class.forName("net.sourceforge.jtds.jdbc.Driver")
+            val connection: Connection = dbConnection.createConnection()
+
+            val materials = mutableListOf<String>()
+            val materialParameters = mutableMapOf<String, Map<String, List<String>>>()
+
+            val materialsStatement = connection.prepareStatement(
+                "SELECT наименование FROM материалы"
+            )
+            val materialResultSet = materialsStatement.executeQuery()
+            while (materialResultSet.next()) {
+                val materialName = materialResultSet.getString("наименование")
+                materials.add(materialName)
+
+                val parametersStatement = connection.prepareStatement(
+                    "SELECT наименование_параметра, значение_параметра FROM параметры_материалов WHERE код_материала = (SELECT код FROM материалы WHERE наименование = ?)"
+                )
+                parametersStatement.setString(1, materialName)
+                val parametersResultSet = parametersStatement.executeQuery()
+                val parameters = mutableMapOf<String, MutableList<String>>()
+                while (parametersResultSet.next()) {
+                    val parameterName = parametersResultSet.getString("наименование_параметра")
+                    val parameterValue = parametersResultSet.getString("значение_параметра")
+                    parameters.putIfAbsent(parameterName, mutableListOf())
+                    parameters[parameterName]?.add(parameterValue)
+                }
+                materialParameters[materialName] = parameters
+            }
+
+            dbConnection.closeConnection(connection)
+            Pair(materials, materialParameters)
+        }
+    }
+
 
     override fun onAddItemClick() {
         addMaterial()
@@ -216,7 +269,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             .setView(dialogView)
             .create()
 
-        val adapter = MaterialAdapter(getMaterials()) { selectedMaterial ->
+        val adapter = MaterialAdapter(materials) { selectedMaterial ->
             materialEditText.setText(selectedMaterial)
             updateMaterialParameters(materialParametersContainer, selectedMaterial)
             dialog.dismiss()
@@ -242,22 +295,20 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         materialName: String
     ) {
         materialParametersContainer.removeAllViews()
-        val parameters = getMaterialParameters(materialName)
+        val parameters = materialParameters[materialName] ?: mapOf()
         val parameterViews = materialParametersViews[materialName]
 
-        for (parameter in parameters) {
+        for ((parameter, values) in parameters) {
             val parameterLayout = layoutInflater.inflate(R.layout.parameter_item, null)
-            val parameterTextView =
-                parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
-            val parameterValueSpinner =
-                parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
+            val parameterTextView = parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
+            val parameterValueSpinner = parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
 
             parameterTextView.text = parameter
 
             val parameterAdapter = ArrayAdapter<String>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
-                getParameterValues(parameter)
+                values
             )
             parameterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             parameterValueSpinner.adapter = parameterAdapter
@@ -267,23 +318,8 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         }
     }
 
-    private fun getMaterials(): List<String> {
-        return listOf("Труба ПЭ", "Муфта", "Телескопический удлинитель", "Грунт-эмаль по металлу")
-    }
 
-    private fun getMaterialParameters(materialName: String): List<String> {
-        return when (materialName) {
-            "Труба ПЭ" -> listOf("Диаметр")
-            "Телескопический удлинитель" -> listOf("Длина", "Диаметр")
-            else -> listOf()
-        }
-    }
-
-    private fun getParameterValues(parameterName: String): List<String> {
-        return when (parameterName) {
-            "Диаметр" -> listOf("32", "63", "110")
-            "Длина" -> listOf("1,2-2,0")
-            else -> listOf()
-        }
+    private fun getParameterValues(parameterName: String, materialName: String): List<String> {
+        return materialParameters[materialName]?.get(parameterName) ?: listOf()
     }
 }
