@@ -2,6 +2,7 @@ package com.example.ivlinereporting
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.graphics.Rect
 import android.os.Bundle
 import android.view.MenuItem
@@ -10,6 +11,7 @@ import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Scroller
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -42,6 +44,10 @@ class MainActivity : AppCompatActivity() {
                 item
             )
         }
+
+        val user = getSharedPreferences("user_prefs", MODE_PRIVATE).getString("login", null)
+        val loginTextView = navigationView.getHeaderView(0).findViewById<TextView>(R.id.loginTextView)
+        loginTextView.text = user ?: "Неизвестный пользователь"
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

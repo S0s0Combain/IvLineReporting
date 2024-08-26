@@ -13,6 +13,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.widget.ExpandableListView
 import android.widget.FrameLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -47,6 +48,10 @@ class HelpActivity : AppCompatActivity() {
         navigationView.setNavigationItemSelectedListener { item ->
             menuHandler.onNavigationItemSelected(item)
         }
+        val user = getSharedPreferences("user_prefs", MODE_PRIVATE).getString("login", null)
+        val loginTextView = navigationView.getHeaderView(0).findViewById<TextView>(R.id.loginTextView)
+        loginTextView.text = user ?: "Неизвестный пользователь"
+
         expandableListView = findViewById(R.id.expandableListView)
         prepareListData()
         helpAdapter = HelpAdapter(this, listDataHeader, listDataChild)

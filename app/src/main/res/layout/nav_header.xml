@@ -8,6 +8,7 @@
     android:gravity="bottom"
     android:background="@color/yellow">
     <TextView
+        android:id="@+id/loginTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="@style/TextAppearance.AppCompat.Headline"

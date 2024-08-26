@@ -1,6 +1,7 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.content.Context
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
@@ -21,11 +22,18 @@ import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.sql.Connection
 
 class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
     lateinit var workContainer: LinearLayout
     private lateinit var workViews: MutableMap<String, EditText>
     private lateinit var workParametersViews: MutableMap<String, MutableMap<String, Spinner>>
+    private lateinit var works: List<String>
+    private lateinit var workParameters: Map<String, Map<String, List<String>>>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -42,12 +50,20 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         workViews = mutableMapOf()
         workParametersViews = mutableMapOf()
 
-        val addItemsButton =
-            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        val addItemsButton = requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addWork() }
-        val sendDataButton =
-            requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
+        val sendDataButton = requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendWorkReport() }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val brigadeType = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                .getString("brigade_type", null) ?: ""
+            val (workList, workParametersMap) = getWorksAndParametersFromDB(brigadeType)
+            withContext(Dispatchers.Main) {
+                works = workList
+                workParameters = workParametersMap
+            }
+        }
     }
 
     override fun onAddItemClick() {
@@ -64,8 +80,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
 
         val deleteWorkButton = workLayout.findViewById<ImageView>(R.id.deleteWorkButton)
         val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
-        val workParametersContainer =
-            workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
+        val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
         deleteWorkButton.setOnClickListener {
             (workLayout.parent as ViewGroup).removeView(workLayout)
@@ -85,25 +100,37 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         dialog.setTitle("Отправка данных")
         dialog.setMessage("Вы уверены, что хотите отправить отчет о выполненной работе?")
         dialog.setPositiveButton("Подтвердить") { dialog, _ ->
-                dialog.dismiss()
+            dialog.dismiss()
             Toast.makeText(requireContext(), "Данные отправлены успешно", Toast.LENGTH_SHORT).show()
             val totalWorks = calculateTotalWorks()
-            if(totalWorks>10){
-                DialogUtils.showEncouragementDialog(requireContext(), "Отлично!", "Ваша продуктивность и упорство просто поразительны!")
+            if (totalWorks > 10) {
+                DialogUtils.showEncouragementDialog(
+                    requireContext(),
+                    "Отлично!",
+                    "Ваша продуктивность и упорство просто поразительны!"
+                )
             } else if (totalWorks > 5) {
-                DialogUtils.showEncouragementDialog(requireContext(), "Поздравляем!", "Вы выполнили много задач! Отличная работа!")
+                DialogUtils.showEncouragementDialog(
+                    requireContext(),
+                    "Поздравляем!",
+                    "Вы выполнили много задач! Отличная работа!"
+                )
             } else {
-                DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Ваш вклад в работу очень ценен!")
+                DialogUtils.showEncouragementDialog(
+                    requireContext(),
+                    "Спасибо!",
+                    "Ваш вклад в работу очень ценен!"
+                )
             }
             workContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
-                dialog.dismiss()
+            dialog.dismiss()
         }
         dialog.show()
     }
 
-    fun calculateTotalWorks():Int{
+    fun calculateTotalWorks(): Int {
         return workContainer.childCount
     }
 
@@ -202,7 +229,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
             .setView(dialogView)
             .create()
 
-        val adapter = WorkAdapter(getWorks()) { selectedWork ->
+        val adapter = WorkAdapter(works) { selectedWork ->
             workEditText.setText(selectedWork)
             updateWorkParameters(workParametersContainer, selectedWork)
             dialog.dismiss()
@@ -225,22 +252,20 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
 
     private fun updateWorkParameters(workParametersContainer: LinearLayout, workName: String) {
         workParametersContainer.removeAllViews()
-        val parameters = getWorkParameters(workName)
+        val parameters = workParameters[workName] ?: mapOf()
         val parameterViews = workParametersViews[workName]
 
-        for (parameter in parameters) {
+        for ((parameter, values) in parameters) {
             val parameterLayout = layoutInflater.inflate(R.layout.parameter_item, null)
-            val parameterTextView =
-                parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
-            val parameterValueSpinner =
-                parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
+            val parameterTextView = parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
+            val parameterValueSpinner = parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
 
             parameterTextView.text = parameter
 
             val parameterAdapter = ArrayAdapter<String>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
-                getParameterValues(parameter)
+                values
             )
             parameterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             parameterValueSpinner.adapter = parameterAdapter
@@ -250,23 +275,46 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         }
     }
 
-    private fun getWorks(): List<String> {
-        return listOf("Ознакомление с объектом работ", "Укладка трубы", "Копка траншеи")
-    }
+    private suspend fun getWorksAndParametersFromDB(brigadeType: String): Pair<List<String>, Map<String, Map<String, List<String>>>> {
+        return withContext(Dispatchers.IO) {
+            val dbConnection = DatabaseConnection()
+            Class.forName("net.sourceforge.jtds.jdbc.Driver")
+            val connection: Connection = dbConnection.createConnection()
 
-    private fun getWorkParameters(workName: String): List<String> {
-        return when (workName) {
-            "Укладка трубы" -> listOf("Тип укладки")
-            "Копка траншеи" -> listOf("Тип копки")
-            else -> listOf()
+            val works = mutableListOf<String>()
+            val workParameters = mutableMapOf<String, Map<String, List<String>>>()
+
+            val worksStatement = connection.prepareStatement(
+                "SELECT наименование FROM виды_работ WHERE вид_бригады = ?"
+            )
+            worksStatement.setString(1, brigadeType)
+            val workResultSet = worksStatement.executeQuery()
+            while (workResultSet.next()) {
+                val workName = workResultSet.getString("наименование")
+                works.add(workName)
+
+                val parametersStatement = connection.prepareStatement(
+                    "SELECT наименование_параметра, значение_параметра FROM параметры_работ WHERE код_вида_работы = (SELECT код FROM виды_работ WHERE наименование = ?)"
+                )
+                parametersStatement.setString(1, workName)
+                val parametersResultSet = parametersStatement.executeQuery()
+                val parameters = mutableMapOf<String, MutableList<String>>()
+                while (parametersResultSet.next()) {
+                    val parameterName = parametersResultSet.getString("наименование_параметра")
+                    val parameterValue = parametersResultSet.getString("значение_параметра")
+                    parameters.putIfAbsent(parameterName, mutableListOf())
+                    parameters[parameterName]?.add(parameterValue)
+                }
+                workParameters[workName] = parameters
+            }
+
+            dbConnection.closeConnection(connection)
+            Pair(works, workParameters)
         }
     }
 
-    private fun getParameterValues(parameterName: String): List<String> {
-        return when (parameterName) {
-            "Тип укладки" -> listOf("Открытая", "С помощью ГНБ")
-            "Тип копки" -> listOf("Ручная", "С помощью техники")
-            else -> listOf()
-        }
+
+    private fun getParameterValues(parameterName: String, workName: String): List<String> {
+        return workParameters[workName]?.get(parameterName) ?: listOf()
     }
 }

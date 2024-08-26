@@ -7,6 +7,7 @@ import android.content.SharedPreferences
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -138,10 +139,11 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun saveUserData(login: String, brigadeType: String){
-        val sharedPreferences: SharedPreferences = getSharedPreferences("users_prefs", Context.MODE_PRIVATE)
+        val sharedPreferences: SharedPreferences = getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
         val editor = sharedPreferences.edit()
         editor.putString("login", login)
         editor.putString("brigade_type", brigadeType)
+        editor.apply()
     }
 
     private suspend fun getBrigadeType(login: String):String?{

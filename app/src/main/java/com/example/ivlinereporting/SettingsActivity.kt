@@ -35,6 +35,10 @@ class SettingsActivity : AppCompatActivity() {
         navigationView.setNavigationItemSelectedListener { item ->
             menuHandler.onNavigationItemSelected(item)
         }
+        val user = getSharedPreferences("user_prefs", MODE_PRIVATE).getString("login", null)
+        val loginTextView = navigationView.getHeaderView(0).findViewById<TextView>(R.id.loginTextView)
+        loginTextView.text = user ?: "Неизвестный пользователь"
+
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
                 .replace(R.id.settingsContainer, SettingsFragment()).commit()
