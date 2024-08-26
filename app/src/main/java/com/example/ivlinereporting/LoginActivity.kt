@@ -1,41 +1,34 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
-import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.graphics.Color
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
-import android.telecom.Connection
 import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
-import android.widget.ProgressBar
-import android.widget.Scroller
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
-import androidx.core.view.ViewCompat
-import androidx.core.view.WindowInsetsCompat
 import androidx.preference.PreferenceManager
-import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.sql.DriverManager
-import java.sql.Statement
 import java.sql.Types
 
 class LoginActivity : AppCompatActivity() {
     lateinit var loginEditText: TextInputEditText
     lateinit var passwordEditText: TextInputEditText
-    lateinit var progressDialog: ProgressDialog
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,12 +43,8 @@ class LoginActivity : AppCompatActivity() {
         loginEditText = findViewById(R.id.loginEditText)
         passwordEditText = findViewById(R.id.passwordEditText)
 
-        progressDialog = ProgressDialog(this)
-        progressDialog.setMessage("Пожалуйста, подождите...")
-        progressDialog.setCancelable(false)
-
         val savedLogin = loadLogin()
-        if(savedLogin!=null){
+        if (savedLogin != null) {
             loginEditText.setText(savedLogin)
         }
     }
@@ -71,11 +60,9 @@ class LoginActivity : AppCompatActivity() {
         if (ev != null) {
             val v: View? = currentFocus
             if (v is EditText) {
-                val scroller = Scroller(this)
-                val scrollBounds = Rect()
-                v.getHitRect(scrollBounds)
-                scrollBounds.offset(-scroller.currX, -scroller.currY)
-                if (!scrollBounds.contains(ev.x.toInt(), ev.y.toInt())) {
+                val rect = Rect()
+                v.getGlobalVisibleRect(rect)
+                if (!rect.contains(ev.rawX.toInt(), ev.rawY.toInt())) {
                     v.clearFocus()
                     val imm = getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
                     imm.hideSoftInputFromWindow(v.windowToken, 0)
@@ -97,29 +84,26 @@ class LoginActivity : AppCompatActivity() {
         val currentLogin = loginEditText.text.toString()
         val currentPassword = passwordEditText.text.toString()
 
-        progressDialog.show()
-        Thread {
-//            if (authentificateUser(currentLogin, currentPassword)) {
-                val savedLogin = loadLogin()
-                if (savedLogin == null || savedLogin != currentLogin) {
-                    runOnUiThread {
-                        progressDialog.dismiss()
+        CoroutineScope(Dispatchers.IO).launch {
+            val result = authentificateUser(currentLogin, currentPassword)
+            withContext(Dispatchers.Main) {
+                if (result) {
+                    val savedLogin = loadLogin()
+                    if (savedLogin == null || savedLogin != currentLogin) {
                         showSaveLoginDialog(currentLogin)
-                    }
-                } else {
-                    runOnUiThread {
-                        progressDialog.dismiss()
-                        val intent = Intent(this, MainActivity::class.java)
+                    } else {
+                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
                         startActivity(intent)
                     }
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        "Неверный логин или пароль",
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
-//            } else{
-//                runOnUiThread{
-//                    progressDialog.dismiss()
-//                    Toast.makeText(applicationContext, "Неверный логин или пароль", Toast.LENGTH_SHORT).show()
-//                }
-//            }
-        }.start()
+            }
+        }
     }
 
     fun showSaveLoginDialog(login: String) {
@@ -152,24 +136,18 @@ class LoginActivity : AppCompatActivity() {
         return sharedPreferences.getString("saved_login", null)
     }
 
-    fun authentificateUser(login: String, password: String):Boolean{
+    private fun authentificateUser(login: String, password: String): Boolean {
+        val dbConnection = DatabaseConnection()
         var isAuthentificated = false
-        val url = "jdbc:sqlserver://192.168.100.136:53900;databaseName=ivline"
-        val user = "MSSQLUser"
-        val pass = "PR7Cysy4fNq3"
-
-        try{
-            val connection: java.sql.Connection = DriverManager.getConnection(url, user, pass)
-            val callableStatement = connection.prepareCall("{call dbo.AuthentificateUser(?, ?, ?)}")
-            callableStatement.setString(1, login)
-            callableStatement.setString(2, password)
-            callableStatement.registerOutParameter(3, Types.BIT)
-            callableStatement.execute()
-            isAuthentificated = callableStatement.getBoolean(3)
-            connection.close()
-        } catch (e: Exception){
-            Log.e("LoginLog", e.message.toString())
-        }
+        Class.forName("net.sourceforge.jtds.jdbc.Driver")
+        val connection: java.sql.Connection = dbConnection.CreateConnection()
+        val callableStatement = connection.prepareCall("{call dbo.AuthentificateUser(?, ?, ?)}")
+        callableStatement.setString(1, login)
+        callableStatement.setString(2, password)
+        callableStatement.registerOutParameter(3, Types.BIT)
+        callableStatement.execute()
+        isAuthentificated = callableStatement.getBoolean(3)
+        dbConnection.CloseConnection(connection)
         return isAuthentificated
     }
 }

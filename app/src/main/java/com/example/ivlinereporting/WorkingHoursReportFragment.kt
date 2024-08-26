@@ -6,6 +6,7 @@ import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -19,8 +20,9 @@ import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import java.text.SimpleDateFormat
-import java.util.Locale
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 
 class WorkingHoursReportFragment : Fragment() {
     private lateinit var workersViews: MutableMap<String, EditText>
@@ -80,6 +82,8 @@ class WorkingHoursReportFragment : Fragment() {
                     "Ваш труд не остался незамеченным!"
                 )
             }
+            createSpreadsheetMLFile()
+
             titleLinearLayout.visibility = View.INVISIBLE
             workersContainer.removeAllViews()
         }
@@ -87,6 +91,83 @@ class WorkingHoursReportFragment : Fragment() {
             dialog.dismiss()
         }
         dialog.show()
+    }
+
+    private fun createSpreadsheetMLFile() {
+        val activity = requireActivity() as InputDataActivity
+        val dateEditText = activity.findViewById<EditText>(R.id.dateEditText)
+        val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
+        val date = dateEditText.text.toString()
+        val obj = objectEditText.text.toString()
+
+        val file = File(requireContext().filesDir, "working_hours_report.xml")
+        val outputStream = FileOutputStream(file)
+        val writer = OutputStreamWriter(outputStream, "UTF-8")
+
+        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
+        writer.write("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        writer.write("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
+        writer.write("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
+        writer.write("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        writer.write("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
+        writer.write("  <Worksheet ss:Name=\"Отработанные часы\">\n")
+        writer.write("    <Table>\n")
+
+        writer.write("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
+        writer.write("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
+        writer.write("      <Column ss:Width=\"${calculateColumnWidthForWorkers()}\"/>\n")
+        writer.write("      <Column ss:Width=\"50\"/>\n")
+
+        writer.write("      <Row>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Сотрудник</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Часы</Data></Cell>\n")
+        writer.write("      </Row>\n")
+
+        val workerCount = workersContainer.childCount
+        for (i in 0 until workerCount) {
+            val workerLayout = workersContainer.getChildAt(i) as LinearLayout
+            val workerEditText = workerLayout.findViewById<EditText>(R.id.workerEditText)
+            val hoursEditText = workerLayout.findViewById<EditText>(R.id.hoursEditText)
+
+            writer.write("      <Row>\n")
+            if (i == 0) {
+                writer.write("        <Cell ss:MergeDown=\"${workerCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
+                writer.write("        <Cell ss:MergeDown=\"${workerCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
+            }
+            writer.write("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${workerEditText.text}</Data></Cell>\n")
+            writer.write("        <Cell><Data ss:Type=\"Number\">${hoursEditText.text}</Data></Cell>\n")
+            writer.write("      </Row>\n")
+        }
+
+        writer.write("    </Table>\n")
+        writer.write("  </Worksheet>\n")
+        writer.write("</Workbook>\n")
+
+        writer.close()
+        outputStream.close()
+
+        Log.i("fileTag", "Файл SpreadsheetML создан: ${file.absolutePath}")
+    }
+
+    private fun calculateColumnWidth(text: String):Int{
+        val averageCharWidth = 8
+        return text.length * averageCharWidth
+    }
+
+    private fun calculateColumnWidthForWorkers():Int {
+        var maxLength = 0
+        for (i in 0 until workersContainer.childCount) {
+            val workerLayout = workersContainer.getChildAt(i) as LinearLayout
+            val workerEditText = workerLayout.findViewById<EditText>(R.id.workerEditText)
+            val workerName = workerEditText.text.toString()
+            if (workerName.length > maxLength) {
+                maxLength = workerName.length
+            }
+        }
+        val averageCharWidth = 8
+        return maxLength * averageCharWidth
     }
 
     private fun calculateAverageHours(): Double {
@@ -134,8 +215,14 @@ class WorkingHoursReportFragment : Fragment() {
                 return false
             }
 
-            if(hoursEditText.text.toString().toInt()<1 || hoursEditText.text.toString().toInt()>24){
-                Toast.makeText(requireContext(), "Количество часов может быть от 1 до 24", Toast.LENGTH_SHORT).show()
+            if (hoursEditText.text.toString().toInt() < 1 || hoursEditText.text.toString()
+                    .toInt() > 24
+            ) {
+                Toast.makeText(
+                    requireContext(),
+                    "Количество часов может быть от 1 до 24",
+                    Toast.LENGTH_SHORT
+                ).show()
                 return false
             }
         }
