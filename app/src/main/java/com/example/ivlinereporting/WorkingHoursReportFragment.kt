@@ -1,6 +1,7 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.content.Context
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
@@ -20,12 +21,18 @@ import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
+import java.sql.Connection
 
 class WorkingHoursReportFragment : Fragment() {
     private lateinit var workersViews: MutableMap<String, EditText>
+    private lateinit var workers: List<String>
 
     lateinit var titleLinearLayout: LinearLayout
     lateinit var workersContainer: LinearLayout
@@ -38,7 +45,6 @@ class WorkingHoursReportFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-
         titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         workersViews = mutableMapOf()
         workersContainer = requireView().findViewById<LinearLayout>(R.id.workersContainer)
@@ -48,7 +54,57 @@ class WorkingHoursReportFragment : Fragment() {
         val sendDataButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendWorkingHoursReport() }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val brigadeType =
+                requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                    .getString("brigade_type", null) ?: ""
+            val workers = getWorkersNamesFromDB(brigadeType)
+            withContext(Dispatchers.Main) {
+                this@WorkingHoursReportFragment.workers = workers
+            }
+        }
     }
+
+
+    private suspend fun getWorkersNamesFromDB(brigadeType: String): List<String> {
+        return withContext(Dispatchers.IO) {
+            val dbConnection = DatabaseConnection()
+            Class.forName("net.sourceforge.jtds.jdbc.Driver")
+            val connection: Connection = dbConnection.createConnection()
+
+            val workers = mutableListOf<String>()
+            val userBrigadeWorkers = mutableListOf<String>()
+            val otherBrigadeWorkers = mutableListOf<String>()
+            val noBrigadeWorkers = mutableListOf<String>()
+
+            val workersStatement =
+                connection.prepareStatement("SELECT s.фамилия, s.имя, s.отчество, b.номер_бригады FROM сотрудники s LEFT JOIN бригады_сотрудники bs ON s.код = bs.код_сотрудника LEFT JOIN бригады b ON bs.код_бригады = b.код ORDER BY b.номер_бригады, s.фамилия, s.имя, s.отчество")
+            val workersResultSet = workersStatement.executeQuery()
+            while (workersResultSet.next()) {
+                val workerName =
+                    "${workersResultSet.getString("фамилия")} ${workersResultSet.getString("имя")} ${
+                        workersResultSet.getString("отчество") ?: ""
+                    }"
+                val workerBrigade = workersResultSet.getString("номер_бригады")
+                if (workerBrigade == brigadeType) {
+                    userBrigadeWorkers.add(workerName)
+                } else if (workerBrigade != null) {
+                    otherBrigadeWorkers.add(workerName)
+                } else {
+                    noBrigadeWorkers.add(workerName)
+                }
+            }
+
+            workers.addAll(userBrigadeWorkers)
+            workers.addAll(otherBrigadeWorkers)
+            workers.addAll(noBrigadeWorkers)
+
+            dbConnection.closeConnection(connection)
+            workers
+        }
+    }
+
 
     @RequiresApi(Build.VERSION_CODES.N)
     private fun sendWorkingHoursReport() {
@@ -151,12 +207,12 @@ class WorkingHoursReportFragment : Fragment() {
         Log.i("fileTag", "Файл SpreadsheetML создан: ${file.absolutePath}")
     }
 
-    private fun calculateColumnWidth(text: String):Int{
+    private fun calculateColumnWidth(text: String): Int {
         val averageCharWidth = 8
         return text.length * averageCharWidth
     }
 
-    private fun calculateColumnWidthForWorkers():Int {
+    private fun calculateColumnWidthForWorkers(): Int {
         var maxLength = 0
         for (i in 0 until workersContainer.childCount) {
             val workerLayout = workersContainer.getChildAt(i) as LinearLayout
@@ -308,7 +364,7 @@ class WorkingHoursReportFragment : Fragment() {
         val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogWhite)
             .setView(dialogView).create()
 
-        val adapter = WorkerAdapter(getWorkersNames()) { selectedWorker ->
+        val adapter = WorkerAdapter(workers) { selectedWorker ->
             workerEditText.setText(selectedWorker)
             dialog.dismiss()
         }
@@ -326,7 +382,7 @@ class WorkingHoursReportFragment : Fragment() {
         })
 
         dialog.show()
-        adjustDialogSize(dialog, adapter.itemCount)
+        //adjustDialogSize(dialog, adapter.itemCount)
     }
 
     fun adjustDialogSize(dialog: AlertDialog, itemCount: Int) {
@@ -338,26 +394,5 @@ class WorkingHoursReportFragment : Fragment() {
 
         layoutParams?.height = if (desiredHeight > maxHeight) maxHeight else desiredHeight
         window?.attributes = layoutParams
-    }
-
-    private fun getWorkersNames(): List<String> {
-        return listOf(
-            "Иванов Иван Иванович",
-            "Петров Петр Петрович",
-            "Васильев Василий Васильевич",
-            "Николай Коля",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник",
-            "Сотрудник"
-        )
     }
 }

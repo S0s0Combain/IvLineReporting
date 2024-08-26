@@ -19,11 +19,19 @@ import androidx.core.view.isInvisible
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.sql.Connection
 
 class TechniqueReportFragment : Fragment() {
     private lateinit var techniqueViews: MutableMap<String, EditText>
     private lateinit var titleLinearLayout: LinearLayout
     private lateinit var techniqueContainer: LinearLayout
+    private lateinit var rentedTechniques: List<String>
+    private lateinit var nonRentedTechniques: List<String>
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
@@ -35,17 +43,23 @@ class TechniqueReportFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        techniqueContainer = requireView().findViewById<LinearLayout>(R.id.techniqueContainer)
+        techniqueContainer = requireView().findViewById(R.id.techniqueContainer)
         titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         techniqueViews = mutableMapOf()
 
-        val addItemsButton =
-            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        val addItemsButton = requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addTechnique() }
 
-        val sendDataButton =
-            requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
+        val sendDataButton = requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendTechniqueReport() }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val (rentedTechniques, nonRentedTechniques) = getTechniqueNamesFromDB()
+            withContext(Dispatchers.Main) {
+                this@TechniqueReportFragment.rentedTechniques = rentedTechniques
+                this@TechniqueReportFragment.nonRentedTechniques = nonRentedTechniques
+            }
+        }
     }
 
     private fun addTechnique() {
@@ -54,9 +68,7 @@ class TechniqueReportFragment : Fragment() {
         }
         val techniqueLayout = layoutInflater.inflate(R.layout.technique_layout, null)
 
-        val deleteTechniqueButton =
-            techniqueLayout.findViewById<ImageView>(R.id.deleteTechniqueButton)
-
+        val deleteTechniqueButton = techniqueLayout.findViewById<ImageView>(R.id.deleteTechniqueButton)
         val techniqueEditText = techniqueLayout.findViewById<EditText>(R.id.techniqueEditText)
 
         techniqueEditText.setOnClickListener { showTechniqueDialog(techniqueEditText) }
@@ -191,15 +203,14 @@ class TechniqueReportFragment : Fragment() {
 
     private fun showTechniqueDialog(techniqueEditText: EditText) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_technique, null)
-        val searchTechniqueEditText =
-            dialogView.findViewById<EditText>(R.id.searchTechniqueEditText)
-        val techniqueRecyclerView =
-            dialogView.findViewById<RecyclerView>(R.id.techniqueRecyclerView)
+        val searchTechniqueEditText = dialogView.findViewById<EditText>(R.id.searchTechniqueEditText)
+        val techniqueRecyclerView = dialogView.findViewById<RecyclerView>(R.id.techniqueRecyclerView)
         val dialog = AlertDialog.Builder(requireContext())
             .setView(dialogView)
             .create()
 
-        val adapter = TechniqueAdapter(getTechniqueNames()) { selectedTechnique ->
+        val allTechniques = rentedTechniques + nonRentedTechniques
+        val adapter = TechniqueAdapter(allTechniques) { selectedTechnique ->
             techniqueEditText.setText(selectedTechnique)
             dialog.dismiss()
         }
@@ -219,11 +230,31 @@ class TechniqueReportFragment : Fragment() {
         dialog.show()
     }
 
-    private fun getTechniqueNames(): List<String> {
-        return listOf(
-            "самосвал",
-            "илососная машина",
-            "Техника"
-        )
+    private suspend fun getTechniqueNamesFromDB(): Pair<List<String>, List<String>> {
+        return withContext(Dispatchers.IO) {
+            val dbConnection = DatabaseConnection()
+            Class.forName("net.sourceforge.jtds.jdbc.Driver")
+            val connection: Connection = dbConnection.createConnection()
+
+            val rentedTechniques = mutableListOf<String>()
+            val nonRentedTechniques = mutableListOf<String>()
+
+            val techniquesStatement = connection.prepareStatement(
+                "SELECT название, наемная FROM техника"
+            )
+            val techniquesResultSet = techniquesStatement.executeQuery()
+            while (techniquesResultSet.next()) {
+                val techniqueName = techniquesResultSet.getString("название")
+                val isRented = techniquesResultSet.getBoolean("наемная")
+                if (isRented) {
+                    rentedTechniques.add("$techniqueName (найм)")
+                } else {
+                    nonRentedTechniques.add(techniqueName)
+                }
+            }
+
+            dbConnection.closeConnection(connection)
+            Pair(rentedTechniques, nonRentedTechniques)
+        }
     }
 }
