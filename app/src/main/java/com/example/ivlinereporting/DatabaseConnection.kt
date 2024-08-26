@@ -18,14 +18,14 @@ class DatabaseConnection {
             return SecretKeySpec(decodedKey, 0, decodedKey.size, "AES")
         }
 
-    fun CreateConnection():Connection{
+    fun createConnection():Connection{
         val url = EncryptionUtils.decrypt(encryptedUrl, key)
         val user = EncryptionUtils.decrypt(encryptedUser, key)
         val pass = EncryptionUtils.decrypt(encryptedPass, key)
         return DriverManager.getConnection(url, user, pass)
     }
 
-    fun CloseConnection(connection: Connection){
+    fun closeConnection(connection: Connection){
         connection.close()
     }
 }

@@ -7,7 +7,6 @@ import android.content.SharedPreferences
 import android.graphics.Rect
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.view.MotionEvent
 import android.view.View
 import android.view.inputmethod.InputMethodManager
@@ -23,7 +22,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.sql.DriverManager
+import java.sql.Connection
 import java.sql.Types
 
 class LoginActivity : AppCompatActivity() {
@@ -88,6 +87,8 @@ class LoginActivity : AppCompatActivity() {
             val result = authentificateUser(currentLogin, currentPassword)
             withContext(Dispatchers.Main) {
                 if (result) {
+                    val brigadeType = getBrigadeType(currentLogin)
+                    saveUserData(currentLogin, brigadeType.toString())
                     val savedLogin = loadLogin()
                     if (savedLogin == null || savedLogin != currentLogin) {
                         showSaveLoginDialog(currentLogin)
@@ -130,24 +131,49 @@ class LoginActivity : AppCompatActivity() {
         editor.apply()
     }
 
-    fun loadLogin(): String? {
+    private fun loadLogin(): String? {
         val sharedPreferences: SharedPreferences =
             getSharedPreferences("login_prefs", Context.MODE_PRIVATE)
         return sharedPreferences.getString("saved_login", null)
+    }
+
+    private fun saveUserData(login: String, brigadeType: String){
+        val sharedPreferences: SharedPreferences = getSharedPreferences("users_prefs", Context.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.putString("login", login)
+        editor.putString("brigade_type", brigadeType)
+    }
+
+    private suspend fun getBrigadeType(login: String):String?{
+        return withContext(Dispatchers.IO) {
+            val dbConnection = DatabaseConnection()
+            var brigadeType: String? = null
+            Class.forName("net.sourceforge.jtds.jdbc.Driver")
+            val connection: Connection = dbConnection.createConnection()
+            val preparedStatement =
+                connection.prepareStatement("SELECT вид_бригады FROM бригады WHERE код_бригадира = (SELECT код FROM пользователи WHERE логин = ?)")
+            preparedStatement.setString(1, login)
+            val resultSet = preparedStatement.executeQuery()
+            if (resultSet.next()) {
+                brigadeType = resultSet.getString("вид_бригады")
+            }
+            dbConnection.closeConnection(connection)
+            brigadeType
+        }
     }
 
     private fun authentificateUser(login: String, password: String): Boolean {
         val dbConnection = DatabaseConnection()
         var isAuthentificated = false
         Class.forName("net.sourceforge.jtds.jdbc.Driver")
-        val connection: java.sql.Connection = dbConnection.CreateConnection()
+        val connection: java.sql.Connection = dbConnection.createConnection()
         val callableStatement = connection.prepareCall("{call dbo.AuthentificateUser(?, ?, ?)}")
         callableStatement.setString(1, login)
         callableStatement.setString(2, password)
         callableStatement.registerOutParameter(3, Types.BIT)
         callableStatement.execute()
         isAuthentificated = callableStatement.getBoolean(3)
-        dbConnection.CloseConnection(connection)
+        dbConnection.closeConnection(connection)
         return isAuthentificated
     }
 }
