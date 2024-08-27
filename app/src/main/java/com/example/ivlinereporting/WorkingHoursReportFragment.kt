@@ -83,14 +83,14 @@ class WorkingHoursReportFragment : Fragment() {
                     .getString("code", null) ?: ""
 
             val workersStatement =
-                connection.prepareStatement("SELECT с.фамилия, с.имя, с.отчество, б.номер_бригады, б.код_бригадира FROM сотрудники с LEFT JOIN бригады_сотрудники бс ON с.код = бс.код_сотрудника LEFT JOIN бригады б ON бс.код_бригады = б.код ORDER BY б.номер_бригады, с.фамилия, с.имя, с.отчество")
+                connection.prepareStatement("SELECT с.фамилия, с.имя, с.отчество, б.код, б.код_бригадира FROM сотрудники с LEFT JOIN бригады_сотрудники бс ON с.код = бс.код_сотрудника LEFT JOIN бригады б ON бс.код_бригады = б.код ORDER BY б.номер_бригады, с.фамилия, с.имя, с.отчество")
             val workersResultSet = workersStatement.executeQuery()
             while (workersResultSet.next()) {
                 val workerName =
                     "${workersResultSet.getString("фамилия")} ${workersResultSet.getString("имя")} ${
                         workersResultSet.getString("отчество") ?: ""
                     }"
-                val workerBrigade = workersResultSet.getString("номер_бригады")
+                val workerBrigade = workersResultSet.getString("код")
                 val brigadeLeaderCode = workersResultSet.getString("код_бригадира")
 
                 if (brigadeLeaderCode == userCode) {
