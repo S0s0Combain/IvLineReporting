@@ -1,12 +1,15 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.app.job.JobWorkItem
 import android.content.Context
 import android.icu.util.Calendar
+import android.icu.util.Output
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -26,6 +29,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.sql.Connection
 
 class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
@@ -122,6 +128,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
                     "Ваш вклад в работу очень ценен!"
                 )
             }
+            createSpreadsheetMLFile()
             workContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
@@ -129,6 +136,107 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         }
         dialog.show()
     }
+
+    private fun createSpreadsheetMLFile() {
+        val activity = requireActivity() as InputDataActivity
+        val dateEditText = activity.findViewById<EditText>(R.id.dateEditText)
+        val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
+        val date = dateEditText.text.toString()
+        val obj = objectEditText.text.toString()
+
+        val file = File(requireContext().filesDir, "work_report.xml")
+        val outputStream = FileOutputStream(file)
+        val writer = OutputStreamWriter(outputStream, "UTF-8")
+
+        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
+        writer.write("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        writer.write("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
+        writer.write("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
+        writer.write("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        writer.write("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
+        writer.write("  <Worksheet ss:Name=\"Работа\">\n")
+        writer.write("    <Table>\n")
+
+        writer.write("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
+        writer.write("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
+        writer.write("      <Column ss:Width=\"${calculateColumnWidthForWorks()}\"/>\n")
+        writer.write("      <Column ss:Width=\"${calculateColumnWidthForTypes()}\"/>\n")
+
+        writer.write("      <Row>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Вид работы</Data></Cell>\n")
+        writer.write("        <Cell><Data ss:Type=\"String\">Тип</Data></Cell>\n")
+        writer.write("      </Row>\n")
+
+        val workCount = workContainer.childCount
+        for (i in 0 until workCount) {
+            val workLayout = workContainer.getChildAt(i) as LinearLayout
+            val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
+            val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
+
+            writer.write("      <Row>\n")
+            if (i == 0) {
+                writer.write("        <Cell ss:MergeDown=\"${workCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
+                writer.write("        <Cell ss:MergeDown=\"${workCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
+            }
+            writer.write("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${workEditText.text}</Data></Cell>\n")
+
+            val parameterSpinner = workParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
+            if (parameterSpinner!=null) {
+                val parameterValue = parameterSpinner.selectedItem
+                writer.write("        <Cell><Data ss:Type=\"String\">$parameterValue</Data></Cell>\n")
+            } else {
+                writer.write("        <Cell><Data ss:Type=\"String\">-</Data></Cell>\n")
+            }
+
+            writer.write("      </Row>\n")
+        }
+
+        writer.write("    </Table>\n")
+        writer.write("  </Worksheet>\n")
+        writer.write("</Workbook>\n")
+
+        writer.close()
+        outputStream.close()
+
+        Log.i("fileTag", "Файл SpreadsheetML создан: ${file.absolutePath}")
+    }
+
+    private fun calculateColumnWidth(text: String): Int {
+        val averageCharWidth = 8
+        return text.length * averageCharWidth
+    }
+
+    private fun calculateColumnWidthForWorks(): Int {
+        var maxLength = 0
+        for (i in 0 until workContainer.childCount) {
+            val workLayout = workContainer.getChildAt(i) as LinearLayout
+            val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
+            val workName = workEditText.text.toString()
+            if (workName.length > maxLength) {
+                maxLength = workName.length
+            }
+        }
+        val averageCharWidth = 8
+        return maxLength * averageCharWidth
+    }
+
+    private fun calculateColumnWidthForTypes(): Int {
+        var maxLength = 0
+        for (i in 0 until workContainer.childCount) {
+            val workLayout = workContainer.getChildAt(i) as LinearLayout
+            val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
+            val parameters = workParameters[workEditText.text.toString()] ?: mapOf()
+            val parameterValues = parameters.values.flatten().joinToString(", ")
+            if (parameterValues.length > maxLength) {
+                maxLength = parameterValues.length
+            }
+        }
+        val averageCharWidth = 8
+        return maxLength * averageCharWidth
+    }
+
 
     fun calculateTotalWorks(): Int {
         return workContainer.childCount
@@ -144,10 +252,11 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
             ).show()
             return false
         }
-        val worksNames = mutableSetOf<String>()
+        val worksItems = mutableSetOf<WorkItem>()
         for (i in 0 until workContainer.childCount) {
             val workLayout = workContainer.getChildAt(i) as LinearLayout
             val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
+            val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
             if (workEditText.text.isEmpty()) {
                 Toast.makeText(
@@ -158,7 +267,13 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
                 return false
             }
 
-            if (!worksNames.add(workEditText.text.toString())) {
+            val workName = workEditText.text.toString()
+            val parameterSpinner = workParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
+            val parameterValue = parameterSpinner?.selectedItem?.toString() ?: ""
+
+            val workItem = WorkItem(workName, parameterValue)
+
+            if (!worksItems.add(workItem)) {
                 Toast.makeText(
                     requireContext(),
                     "Виды работ не должны повторяться",
@@ -313,3 +428,5 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         }
     }
 }
+
+data class WorkItem(val name: String, val type: String)
