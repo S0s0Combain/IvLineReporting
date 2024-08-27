@@ -1,6 +1,7 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.content.Context
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
@@ -33,6 +34,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
     private lateinit var materialParametersViews: MutableMap<String, MutableMap<String, Spinner>>
     private lateinit var materials: List<String>
     private lateinit var materialParameters: Map<String, Map<String, List<String>>>
+    private lateinit var materialUnits: Map<String, String>
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -58,15 +60,16 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         sendDataButton.setOnClickListener { sendMaterialsReport() }
 
         CoroutineScope(Dispatchers.IO).launch {
-            val (materialList, materialParametersMap) = getMaterialsAndParametersFromDB()
+            val (materialList, materialParametersMap, materialUnitsMap) = getMaterialsAndParametersFromDB()
             withContext(Dispatchers.Main){
                 materials = materialList
                 materialParameters = materialParametersMap
+                materialUnits = materialUnitsMap
             }
         }
     }
 
-    private suspend fun getMaterialsAndParametersFromDB(): Pair<List<String>, Map<String, Map<String, List<String>>>> {
+    private suspend fun getMaterialsAndParametersFromDB(): Triple<List<String>, Map<String, Map<String, List<String>>>, Map<String, String>> {
         return withContext(Dispatchers.IO) {
             val dbConnection = DatabaseConnection()
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
@@ -74,14 +77,18 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
             val materials = mutableListOf<String>()
             val materialParameters = mutableMapOf<String, Map<String, List<String>>>()
+            val materialUnits = mutableMapOf<String, String>()
 
-            val materialsStatement = connection.prepareStatement(
-                "SELECT наименование FROM материалы"
-            )
+            val userBrigadeType = getUserBrigadeType(connection)
+
+            val materialsStatement = connection.prepareStatement("SELECT м.наименование, м.единица_измерения FROM материалы м JOIN материалы_виды_бригад мвб ON м.код = мвб.код_материала WHERE мвб.вид_бригады = ?")
+            materialsStatement.setString(1, userBrigadeType)
             val materialResultSet = materialsStatement.executeQuery()
             while (materialResultSet.next()) {
                 val materialName = materialResultSet.getString("наименование")
+                val unitMeasurement = materialResultSet.getString("единица_измерения")
                 materials.add(materialName)
+                materialUnits[materialName] = unitMeasurement
 
                 val parametersStatement = connection.prepareStatement(
                     "SELECT наименование_параметра, значение_параметра FROM параметры_материалов WHERE код_материала = (SELECT код FROM материалы WHERE наименование = ?)"
@@ -99,10 +106,24 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             }
 
             dbConnection.closeConnection(connection)
-            Pair(materials, materialParameters)
+            Triple(materials, materialParameters, materialUnits)
         }
     }
 
+
+
+    private suspend fun getUserBrigadeType(connection: Connection): String {
+        val userId = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE).getString("code", null)
+        val brigadeStatement = connection.prepareStatement(
+            "SELECT вид_бригады FROM бригады WHERE код_бригадира = ?"
+        )
+        brigadeStatement.setInt(1, userId.toString().toInt())
+        val brigadeResultSet = brigadeStatement.executeQuery()
+        if (brigadeResultSet.next()) {
+            return brigadeResultSet.getString("вид_бригады")
+        }
+        throw IllegalStateException("Brigade type not found for user")
+    }
 
     override fun onAddItemClick() {
         addMaterial()
@@ -121,6 +142,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         val materialEditText = materialLayout.findViewById<EditText>(R.id.materialEditText)
         val materialParametersContainer =
             materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
+        val unitMeasurementTextView = materialLayout.findViewById<TextView>(R.id.unitMeasurementTextView)
 
         deleteMaterialButton.setOnClickListener {
             (materialLayout.parent as ViewGroup).removeView(materialLayout)
@@ -129,12 +151,14 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         materialEditText.setOnClickListener {
             showMaterialDialog(
                 materialEditText,
-                materialParametersContainer
+                materialParametersContainer,
+                unitMeasurementTextView
             )
         }
 
         materialsContainer.addView(materialLayout)
     }
+
 
     @RequiresApi(Build.VERSION_CODES.N)
     fun sendMaterialsReport() {
@@ -166,11 +190,14 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             ).show()
             return false
         }
-        val materialsNames = mutableSetOf<String>()
+
+        val materialsData = mutableSetOf<Pair<String, Map<String, String>>>()
+
         for (i in 0 until materialsContainer.childCount) {
             val materialsLayout = materialsContainer.getChildAt(i) as LinearLayout
             val materialsEditText = materialsLayout.findViewById<EditText>(R.id.materialEditText)
             val quantityEditText = materialsLayout.findViewById<EditText>(R.id.quantityEditText)
+            val materialParametersContainer = materialsLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
             if (materialsEditText.text.isEmpty()) {
                 Toast.makeText(
@@ -187,12 +214,26 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
                 return false
             }
 
-            if(quantityEditText.text.toString().toInt()<1){
+            if (quantityEditText.text.toString().toInt() < 1) {
                 Toast.makeText(requireContext(), "Количество должно быть больше 1", Toast.LENGTH_SHORT).show()
                 return false
             }
 
-            if (!materialsNames.add(materialsEditText.text.toString())) {
+            val materialName = materialsEditText.text.toString()
+            val parameters = mutableMapOf<String, String>()
+
+            for (j in 0 until materialParametersContainer.childCount) {
+                val parameterLayout = materialParametersContainer.getChildAt(j) as LinearLayout
+                val parameterNameTextView = parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
+                val parameterValueSpinner = parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
+
+                val parameterName = parameterNameTextView.text.toString()
+                val parameterValue = parameterValueSpinner.selectedItem.toString()
+
+                parameters[parameterName] = parameterValue
+            }
+
+            if (!materialsData.add(Pair(materialName, parameters))) {
                 Toast.makeText(
                     requireContext(),
                     "Виды материалов не должны повторяться",
@@ -201,6 +242,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
                 return false
             }
         }
+
         return validateActivityFields()
     }
 
@@ -258,7 +300,8 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
     private fun showMaterialDialog(
         materialEditText: EditText,
-        materialParametersContainer: LinearLayout
+        materialParametersContainer: LinearLayout,
+        unitMeasurementTextView: TextView
     ) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_material, null)
         val searchMaterialsEditText =
@@ -271,7 +314,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         val adapter = MaterialAdapter(materials) { selectedMaterial ->
             materialEditText.setText(selectedMaterial)
-            updateMaterialParameters(materialParametersContainer, selectedMaterial)
+            updateMaterialParameters(materialParametersContainer, selectedMaterial, unitMeasurementTextView) // Передайте unitMeasurementTextView
             dialog.dismiss()
         }
         materialsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -290,9 +333,11 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         dialog.show()
     }
 
+
     private fun updateMaterialParameters(
         materialParametersContainer: LinearLayout,
-        materialName: String
+        materialName: String,
+        unitMeasurementTextView: TextView
     ) {
         materialParametersContainer.removeAllViews()
         val parameters = materialParameters[materialName] ?: mapOf()
@@ -316,5 +361,8 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             parameterViews?.put(parameter, parameterValueSpinner)
             materialParametersContainer.addView(parameterLayout)
         }
+
+        unitMeasurementTextView.text = materialUnits[materialName]
     }
+
 }

@@ -39,11 +39,10 @@
             tools:ignore="RtlCompat"
             android:inputType="number"/>
         <TextView
-            android:id="@+id/unitMeasurementEditText"
+            android:id="@+id/unitMeasurementTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center_vertical"
-            android:text="шт." />
+            android:layout_gravity="center_vertical" />
     </LinearLayout>
     <LinearLayout
         android:id="@+id/parametersContainer"
