@@ -47,13 +47,18 @@ class MenuHandler(
                 context.startActivity(intent)
             }
             R.id.nav_settings -> {
+                context.finish()
                 val intent = Intent(context, SettingsActivity::class.java)
                 context.startActivity(intent)
             }
 
-            R.id.nav_logout -> {}
+            R.id.nav_logout -> {
+                context.finish()
+                val intent = Intent(context, LoginActivity::class.java)
+                context.startActivity(intent)
+            }
             R.id.nav_exit -> {
-                context.finishAffinity()
+                context.finishAndRemoveTask()
                 exitProcess(0)
             }
         }

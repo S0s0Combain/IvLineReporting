@@ -110,6 +110,7 @@ class LoginActivity : AppCompatActivity() {
                         } else {
                             val intent = Intent(this@LoginActivity, MainActivity::class.java)
                             startActivity(intent)
+                            finish()
                         }
                     } else {
                         Toast.makeText(
@@ -137,10 +138,12 @@ class LoginActivity : AppCompatActivity() {
             saveLogin(login)
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
+            finish()
         }
         dialog.setNegativeButton("Нет") { dialog, which ->
             val intent = Intent(this, MainActivity::class.java)
             startActivity(intent)
+            finish()
         }
         dialog.show()
     }
