@@ -90,6 +90,11 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
                 dialog.dismiss()
         }
         dialog.show()
+        Toast.makeText(
+            requireContext(),
+            "Данные отправлены успешно",
+            Toast.LENGTH_SHORT
+        ).show()
     }
 
     @RequiresApi(Build.VERSION_CODES.N)
@@ -138,23 +143,18 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
             set(Calendar.MONTH, date.substring(3, 5).toInt() - 1)
             set(Calendar.DAY_OF_MONTH, date.substring(0, 2).toInt())
         }
-        val twoDaysAgo = Calendar.getInstance().apply {
-            add(Calendar.DAY_OF_MONTH, -3)
+        val threeDaysAgo = Calendar.getInstance().apply {
+            add(Calendar.DAY_OF_MONTH, -4)
         }
         val oneDayAfter = Calendar.getInstance().apply {
             add(Calendar.DAY_OF_MONTH, 1)
         }
-        if (!selectedDate.after(twoDaysAgo)) {
-            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
+        if (!selectedDate.after(threeDaysAgo)) {
+            AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogRed)
                 .setTitle("Ошибка")
                 .setMessage("Дата должна быть не более, чем на два дня раньше текущей")
                 .setPositiveButton("Ок") { dialog, _ ->
                     dialog.dismiss()
-                    Toast.makeText(
-                        requireContext(),
-                        "Данные отправлены успешно",
-                        Toast.LENGTH_SHORT
-                    ).show()
                 }
                 .show()
             return false
