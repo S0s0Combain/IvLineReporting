@@ -1,6 +1,7 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -28,6 +29,7 @@ import java.sql.Types
 class LoginActivity : AppCompatActivity() {
     lateinit var loginEditText: TextInputEditText
     lateinit var passwordEditText: TextInputEditText
+    lateinit var progressDialog: ProgressDialog
 
     @RequiresApi(Build.VERSION_CODES.R)
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -46,6 +48,10 @@ class LoginActivity : AppCompatActivity() {
         if (savedLogin != null) {
             loginEditText.setText(savedLogin)
         }
+
+        progressDialog = ProgressDialog(this)
+        progressDialog.setMessage("Пожалуйста, подождите...")
+        progressDialog.setCancelable(false)
     }
 
     fun applyTheme(theme: String?) {
@@ -83,9 +89,12 @@ class LoginActivity : AppCompatActivity() {
         val currentLogin = loginEditText.text.toString()
         val currentPassword = passwordEditText.text.toString()
 
+        progressDialog.show()
+
         CoroutineScope(Dispatchers.IO).launch {
             val result = authentificateUser(currentLogin, currentPassword)
             withContext(Dispatchers.Main) {
+                progressDialog.dismiss()
                 if (result) {
                     val (code, brigadeType) = getUserData(currentLogin)
                     saveUserData(currentLogin, code, brigadeType.toString())

@@ -1,6 +1,7 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Context
 import android.icu.util.Calendar
 import android.os.Build
@@ -33,6 +34,7 @@ import java.sql.Connection
 class WorkingHoursReportFragment : Fragment() {
     private lateinit var workersViews: MutableMap<String, EditText>
     private lateinit var workers: List<String>
+    private lateinit var progressDialog: ProgressDialog
 
     lateinit var titleLinearLayout: LinearLayout
     lateinit var workersContainer: LinearLayout
@@ -48,6 +50,10 @@ class WorkingHoursReportFragment : Fragment() {
         titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         workersViews = mutableMapOf()
         workersContainer = requireView().findViewById<LinearLayout>(R.id.workersContainer)
+        progressDialog = ProgressDialog(requireContext())
+        progressDialog.setMessage("Пожалуйста, подождите...")
+        progressDialog.setCancelable(false)
+
         val addItemsButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addWorker() }
@@ -55,12 +61,15 @@ class WorkingHoursReportFragment : Fragment() {
             requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendWorkingHoursReport() }
 
+        progressDialog.show()
+
         CoroutineScope(Dispatchers.IO).launch {
             val brigadeType =
                 requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                     .getString("brigade_type", null) ?: ""
             val workers = getWorkersNamesFromDB(brigadeType)
             withContext(Dispatchers.Main) {
+                progressDialog.dismiss()
                 this@WorkingHoursReportFragment.workers = workers
             }
         }

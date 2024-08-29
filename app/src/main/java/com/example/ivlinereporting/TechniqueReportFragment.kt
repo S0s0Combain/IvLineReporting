@@ -1,6 +1,7 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
@@ -14,6 +15,7 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
+import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -36,6 +38,7 @@ class TechniqueReportFragment : Fragment() {
     private lateinit var techniqueContainer: LinearLayout
     private lateinit var rentedTechniques: List<String>
     private lateinit var nonRentedTechniques: List<String>
+    private lateinit var progressDialog: ProgressDialog
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -51,6 +54,9 @@ class TechniqueReportFragment : Fragment() {
         techniqueContainer = requireView().findViewById(R.id.techniqueContainer)
         titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         techniqueViews = mutableMapOf()
+        progressDialog = ProgressDialog(requireContext())
+        progressDialog.setMessage("Пожалуйста, подождите...")
+        progressDialog.setCancelable(false)
 
         val addItemsButton = requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addTechnique() }
@@ -58,9 +64,12 @@ class TechniqueReportFragment : Fragment() {
         val sendDataButton = requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendTechniqueReport() }
 
+        progressDialog.show()
+
         CoroutineScope(Dispatchers.IO).launch {
             val (rentedTechniques, nonRentedTechniques) = getTechniqueNamesFromDB()
             withContext(Dispatchers.Main) {
+                progressDialog.dismiss()
                 this@TechniqueReportFragment.rentedTechniques = rentedTechniques
                 this@TechniqueReportFragment.nonRentedTechniques = nonRentedTechniques
             }

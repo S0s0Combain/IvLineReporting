@@ -1,12 +1,14 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.content.Context
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
+import android.util.Log
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
@@ -26,15 +28,19 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStreamWriter
 import java.sql.Connection
 
 class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
     lateinit var materialsContainer: LinearLayout
     private lateinit var materialViews: MutableMap<String, EditText>
-    private lateinit var materialParametersViews: MutableMap<String, MutableMap<String, Spinner>>
+    private lateinit var materialTypesViews: MutableMap<String, Spinner>
     private lateinit var materials: List<String>
-    private lateinit var materialParameters: Map<String, Map<String, List<String>>>
+    private lateinit var materialTypes: Map<String, List<String>>
     private lateinit var materialUnits: Map<String, String>
+    private lateinit var progressDialog: AlertDialog
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,7 +56,10 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         materialsContainer = requireView().findViewById(R.id.materialsContainer)
         materialViews = mutableMapOf()
-        materialParametersViews = mutableMapOf()
+        materialTypesViews = mutableMapOf()
+        progressDialog = ProgressDialog(requireContext())
+        progressDialog.setMessage("Пожалуйста, подождите...")
+        progressDialog.setCancelable(false)
 
         val addItemsButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
@@ -59,24 +68,27 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendMaterialsReport() }
 
+        progressDialog.show()
+
         CoroutineScope(Dispatchers.IO).launch {
-            val (materialList, materialParametersMap, materialUnitsMap) = getMaterialsAndParametersFromDB()
+            val (materialList, materialTypesMap, materialUnitsMap) = getMaterialsAndTypesFromDB()
             withContext(Dispatchers.Main){
+                progressDialog.dismiss()
                 materials = materialList
-                materialParameters = materialParametersMap
+                materialTypes = materialTypesMap
                 materialUnits = materialUnitsMap
             }
         }
     }
 
-    private suspend fun getMaterialsAndParametersFromDB(): Triple<List<String>, Map<String, Map<String, List<String>>>, Map<String, String>> {
+    private suspend fun getMaterialsAndTypesFromDB(): Triple<List<String>, Map<String, List<String>>, Map<String, String>> {
         return withContext(Dispatchers.IO) {
             val dbConnection = DatabaseConnection()
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
             val connection: Connection = dbConnection.createConnection()
 
             val materials = mutableListOf<String>()
-            val materialParameters = mutableMapOf<String, Map<String, List<String>>>()
+            val materialTypes = mutableMapOf<String, List<String>>()
             val materialUnits = mutableMapOf<String, String>()
 
             val userBrigadeType = getUserBrigadeType(connection)
@@ -90,27 +102,23 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
                 materials.add(materialName)
                 materialUnits[materialName] = unitMeasurement
 
-                val parametersStatement = connection.prepareStatement(
-                    "SELECT наименование_параметра, значение_параметра FROM параметры_материалов WHERE код_материала = (SELECT код FROM материалы WHERE наименование = ?)"
+                val typesStatement = connection.prepareStatement(
+                    "SELECT тм.значение FROM типы_материалов тм JOIN материалы_типы_материалов мтм ON тм.код = мтм.код_типа WHERE мтм.код_материала = (SELECT код FROM материалы WHERE наименование = ?)"
                 )
-                parametersStatement.setString(1, materialName)
-                val parametersResultSet = parametersStatement.executeQuery()
-                val parameters = mutableMapOf<String, MutableList<String>>()
-                while (parametersResultSet.next()) {
-                    val parameterName = parametersResultSet.getString("наименование_параметра")
-                    val parameterValue = parametersResultSet.getString("значение_параметра")
-                    parameters.putIfAbsent(parameterName, mutableListOf())
-                    parameters[parameterName]?.add(parameterValue)
+                typesStatement.setString(1, materialName)
+                val typesResultSet = typesStatement.executeQuery()
+                val types = mutableListOf<String>()
+                while (typesResultSet.next()) {
+                    val typeValue = typesResultSet.getString("значение")
+                    types.add(typeValue)
                 }
-                materialParameters[materialName] = parameters
+                materialTypes[materialName] = types
             }
 
             dbConnection.closeConnection(connection)
-            Triple(materials, materialParameters, materialUnits)
+            Triple(materials, materialTypes, materialUnits)
         }
     }
-
-
 
     private suspend fun getUserBrigadeType(connection: Connection): String {
         val userId = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE).getString("code", null)
@@ -159,7 +167,6 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         materialsContainer.addView(materialLayout)
     }
 
-
     @RequiresApi(Build.VERSION_CODES.N)
     fun sendMaterialsReport() {
         if (!validateForm()) {
@@ -191,7 +198,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             return false
         }
 
-        val materialsData = mutableSetOf<Pair<String, Map<String, String>>>()
+        val materialsData = mutableSetOf<Pair<String, String>>()
 
         for (i in 0 until materialsContainer.childCount) {
             val materialsLayout = materialsContainer.getChildAt(i) as LinearLayout
@@ -220,20 +227,10 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             }
 
             val materialName = materialsEditText.text.toString()
-            val parameters = mutableMapOf<String, String>()
+            val typeSpinner = materialParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
+            val typeValue = typeSpinner.selectedItem.toString()
 
-            for (j in 0 until materialParametersContainer.childCount) {
-                val parameterLayout = materialParametersContainer.getChildAt(j) as LinearLayout
-                val parameterNameTextView = parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
-                val parameterValueSpinner = parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
-
-                val parameterName = parameterNameTextView.text.toString()
-                val parameterValue = parameterValueSpinner.selectedItem.toString()
-
-                parameters[parameterName] = parameterValue
-            }
-
-            if (!materialsData.add(Pair(materialName, parameters))) {
+            if (!materialsData.add(Pair(materialName, typeValue))) {
                 Toast.makeText(
                     requireContext(),
                     "Виды материалов не должны повторяться",
@@ -314,7 +311,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         val adapter = MaterialAdapter(materials) { selectedMaterial ->
             materialEditText.setText(selectedMaterial)
-            updateMaterialParameters(materialParametersContainer, selectedMaterial, unitMeasurementTextView) // Передайте unitMeasurementTextView
+            updateMaterialParameters(materialParametersContainer, selectedMaterial, unitMeasurementTextView)
             dialog.dismiss()
         }
         materialsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -333,36 +330,30 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         dialog.show()
     }
 
-
     private fun updateMaterialParameters(
         materialParametersContainer: LinearLayout,
         materialName: String,
         unitMeasurementTextView: TextView
     ) {
         materialParametersContainer.removeAllViews()
-        val parameters = materialParameters[materialName] ?: mapOf()
-        val parameterViews = materialParametersViews[materialName]
+        val types = materialTypes[materialName] ?: listOf()
 
-        for ((parameter, values) in parameters) {
+        if (types.isNotEmpty()) {
             val parameterLayout = layoutInflater.inflate(R.layout.parameter_item, null)
-            val parameterTextView = parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
             val parameterValueSpinner = parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
-
-            parameterTextView.text = parameter
 
             val parameterAdapter = ArrayAdapter<String>(
                 requireContext(),
                 android.R.layout.simple_spinner_item,
-                values
+                types
             )
             parameterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
             parameterValueSpinner.adapter = parameterAdapter
 
-            parameterViews?.put(parameter, parameterValueSpinner)
+            materialTypesViews[materialName] = parameterValueSpinner
             materialParametersContainer.addView(parameterLayout)
         }
 
         unitMeasurementTextView.text = materialUnits[materialName]
     }
-
 }

@@ -1,6 +1,7 @@
 package com.example.ivlinereporting
 
 import android.app.AlertDialog
+import android.app.ProgressDialog
 import android.app.job.JobWorkItem
 import android.content.Context
 import android.icu.util.Calendar
@@ -40,6 +41,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
     private lateinit var workParametersViews: MutableMap<String, MutableMap<String, Spinner>>
     private lateinit var works: List<String>
     private lateinit var workParameters: Map<String, Map<String, List<String>>>
+    private lateinit var progressDialog: ProgressDialog
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -55,17 +57,23 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         workContainer = requireView().findViewById(R.id.workContainer)
         workViews = mutableMapOf()
         workParametersViews = mutableMapOf()
+        progressDialog = ProgressDialog(requireContext())
+        progressDialog.setMessage("Пожалуйста, подождите...")
+        progressDialog.setCancelable(false)
 
         val addItemsButton = requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addWork() }
         val sendDataButton = requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendWorkReport() }
 
+        progressDialog.show()
+
         CoroutineScope(Dispatchers.IO).launch {
             val brigadeType = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
                 .getString("brigade_type", null) ?: ""
             val (workList, workParametersMap) = getWorksAndParametersFromDB(brigadeType)
             withContext(Dispatchers.Main) {
+                progressDialog.dismiss()
                 works = workList
                 workParameters = workParametersMap
             }

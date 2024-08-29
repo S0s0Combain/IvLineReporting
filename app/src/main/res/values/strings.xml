@@ -37,4 +37,5 @@
     <string name="search_technique">Поиск техники</string>
     <string name="search_work">Поиск работ</string>
     <string name="search_worker">Поиск сотрудника</string>
+    <string name="type">Тип</string>
 </resources>
