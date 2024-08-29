@@ -3,6 +3,7 @@ package com.example.ivlinereporting
 import android.annotation.SuppressLint
 import android.app.DatePickerDialog.OnDateSetListener
 import android.content.Context
+import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.Rect
 import android.os.Bundle
@@ -36,10 +37,15 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
     lateinit var toolbar: Toolbar
     lateinit var navigationView: NavigationView
 
+    private lateinit var sharedPreferences: SharedPreferences
+    private lateinit var objectUtils: ObjectUtils
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContentView(R.layout.activity_input_data)
+        sharedPreferences = getSharedPreferences("user_prefs", MODE_PRIVATE)
+        objectUtils = ObjectUtils(this)
         addItemsButton = findViewById(R.id.addItemsButton)
         sendDataButton = findViewById(R.id.sendDataButton)
         addItemsButton.drawable.setTint(Color.BLACK)
@@ -80,6 +86,11 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
         showFragment(fragment)
 
         dateEditText = findViewById(R.id.dateEditText)
+        val objectEditText = findViewById<EditText>(R.id.objectEditText)
+        val savedObject = objectUtils.getSavedObject()
+        if (savedObject != null) {
+            objectEditText.setText(savedObject)
+        }
     }
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {

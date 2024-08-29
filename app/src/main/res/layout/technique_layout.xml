@@ -20,6 +20,15 @@
         android:layout_gravity="center_vertical"
         android:layout_weight="3"
         android:focusable="false"
+        android:clickable="true"
+        android:hint="Техника"/>
+    <ImageView
+        android:id="@+id/searchTechniqueButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:focusable="true"
+        android:src="@drawable/baseline_search_24"
         android:clickable="true"/>
     <Spinner
         style="@style/Widget.AppCompat.Spinner.Underlined"
@@ -39,6 +48,7 @@
         android:layout_weight="0.7"
         android:inputType="number"
         android:maxLength="2"
-        android:textAlignment="center"
+        android:gravity="start"
+        android:hint="Кол."
         tools:ignore="RtlCompat" />
 </LinearLayout>

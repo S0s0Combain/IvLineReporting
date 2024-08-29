@@ -6,42 +6,11 @@
     android:layout_height="match_parent"
     android:fillViewport="true">
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_margin="10dp">
-        <LinearLayout
-            android:id="@+id/titleLinearLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:visibility="invisible">
-            <Space
-                android:layout_width="0dp"
-                android:layout_weight="1"
-                android:layout_height="wrap_content"/>
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="4.8"
-                android:text="Техника"/>
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="Тип работы"
-                android:layout_weight="0.7"/>
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Кол."/>
-        </LinearLayout>
         <LinearLayout
             android:id="@+id/techniqueContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_margin="10dp"
             android:orientation="vertical"
             tools:context=".TechniqueReportFragment" />
-    </LinearLayout>
 </ScrollView>

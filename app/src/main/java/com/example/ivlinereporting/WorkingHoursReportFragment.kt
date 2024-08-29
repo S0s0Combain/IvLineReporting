@@ -6,6 +6,7 @@ import android.content.Context
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
+import android.renderscript.ScriptGroup.Input
 import android.text.Editable
 import android.text.TextWatcher
 import android.util.Log
@@ -35,8 +36,8 @@ class WorkingHoursReportFragment : Fragment() {
     private lateinit var workersViews: MutableMap<String, EditText>
     private lateinit var workers: List<String>
     private lateinit var progressDialog: ProgressDialog
+    private lateinit var objectUtils: ObjectUtils
 
-    lateinit var titleLinearLayout: LinearLayout
     lateinit var workersContainer: LinearLayout
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -47,7 +48,6 @@ class WorkingHoursReportFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         workersViews = mutableMapOf()
         workersContainer = requireView().findViewById<LinearLayout>(R.id.workersContainer)
         progressDialog = ProgressDialog(requireContext())
@@ -73,8 +73,8 @@ class WorkingHoursReportFragment : Fragment() {
                 this@WorkingHoursReportFragment.workers = workers
             }
         }
+        objectUtils = ObjectUtils(requireContext())
     }
-
 
     private suspend fun getWorkersNamesFromDB(brigadeType: String): List<String> {
         return withContext(Dispatchers.IO) {
@@ -120,7 +120,6 @@ class WorkingHoursReportFragment : Fragment() {
         }
     }
 
-
     @RequiresApi(Build.VERSION_CODES.N)
     private fun sendWorkingHoursReport() {
         if (!validateForm()) {
@@ -155,7 +154,6 @@ class WorkingHoursReportFragment : Fragment() {
             }
             createSpreadsheetMLFile()
 
-            titleLinearLayout.visibility = View.INVISIBLE
             workersContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
@@ -170,6 +168,8 @@ class WorkingHoursReportFragment : Fragment() {
         val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
         val date = dateEditText.text.toString()
         val obj = objectEditText.text.toString()
+
+        objectUtils.saveObjectIfNotExists(objectEditText)
 
         val file = File(requireContext().filesDir, "working_hours_report.xml")
         val outputStream = FileOutputStream(file)
@@ -352,21 +352,16 @@ class WorkingHoursReportFragment : Fragment() {
     }
 
     private fun addWorker() {
-        if (titleLinearLayout.isInvisible) {
-            titleLinearLayout.visibility = View.VISIBLE
-        }
         val workerLayout = layoutInflater.inflate(R.layout.worker_layout, null)
 
         val deleteWorkerButton = workerLayout.findViewById<ImageView>(R.id.deleteWorkerButton)
         val workerEditText = workerLayout.findViewById<EditText>(R.id.workerEditText)
+        val searchWorkerButton = workerLayout.findViewById<ImageView>(R.id.searchWorkerButton)
 
-        workerEditText.setOnClickListener { showWorkerDialog(workerEditText) }
+        searchWorkerButton.setOnClickListener { showWorkerDialog(workerEditText) }
 
         deleteWorkerButton.setOnClickListener {
             (workerLayout.parent as ViewGroup).removeView(workerLayout)
-            if (workersContainer.childCount == 0) {
-                titleLinearLayout.visibility = View.INVISIBLE
-            }
         }
 
         workersContainer.addView(workerLayout)

@@ -40,6 +40,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
     private lateinit var works: List<String>
     private lateinit var workParameters: Map<String, Map<String, List<String>>>
     private lateinit var progressDialog: ProgressDialog
+    private lateinit var objectUtils: ObjectUtils
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -76,6 +77,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
                 workParameters = workParametersMap
             }
         }
+        objectUtils = ObjectUtils(requireContext())
     }
 
     override fun onAddItemClick() {
@@ -150,6 +152,8 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
         val date = dateEditText.text.toString()
         val obj = objectEditText.text.toString()
+
+        objectUtils.saveObjectIfNotExists(objectEditText)
 
         val file = File(requireContext().filesDir, "work_report.xml")
         val outputStream = FileOutputStream(file)

@@ -15,7 +15,6 @@ import android.view.ViewGroup
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.ProgressBar
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.annotation.RequiresApi
@@ -34,11 +33,11 @@ import java.sql.Connection
 
 class TechniqueReportFragment : Fragment() {
     private lateinit var techniqueViews: MutableMap<String, EditText>
-    private lateinit var titleLinearLayout: LinearLayout
     private lateinit var techniqueContainer: LinearLayout
     private lateinit var rentedTechniques: List<String>
     private lateinit var nonRentedTechniques: List<String>
     private lateinit var progressDialog: ProgressDialog
+    private lateinit var objectUtils: ObjectUtils
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -52,7 +51,6 @@ class TechniqueReportFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         techniqueContainer = requireView().findViewById(R.id.techniqueContainer)
-        titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         techniqueViews = mutableMapOf()
         progressDialog = ProgressDialog(requireContext())
         progressDialog.setMessage("Пожалуйста, подождите...")
@@ -74,24 +72,20 @@ class TechniqueReportFragment : Fragment() {
                 this@TechniqueReportFragment.nonRentedTechniques = nonRentedTechniques
             }
         }
+        objectUtils = ObjectUtils(requireContext())
     }
 
     private fun addTechnique() {
-        if (titleLinearLayout.isInvisible) {
-            titleLinearLayout.visibility = View.VISIBLE
-        }
         val techniqueLayout = layoutInflater.inflate(R.layout.technique_layout, null)
 
         val deleteTechniqueButton = techniqueLayout.findViewById<ImageView>(R.id.deleteTechniqueButton)
         val techniqueEditText = techniqueLayout.findViewById<EditText>(R.id.techniqueEditText)
+        val searchTechniqueButton = techniqueLayout.findViewById<ImageView>(R.id.searchTechniqueButton)
 
-        techniqueEditText.setOnClickListener { showTechniqueDialog(techniqueEditText) }
+        searchTechniqueButton.setOnClickListener { showTechniqueDialog(techniqueEditText) }
 
         deleteTechniqueButton.setOnClickListener {
             (techniqueLayout.parent as ViewGroup).removeView(techniqueLayout)
-            if (techniqueContainer.childCount == 0) {
-                titleLinearLayout.visibility = View.INVISIBLE
-            }
         }
 
         techniqueContainer.addView(techniqueLayout)
@@ -114,7 +108,6 @@ class TechniqueReportFragment : Fragment() {
                 "Вы тщательно отследили использование техники! Отличная работа!"
             )
             createSpreadsheetMLFile()
-            titleLinearLayout.visibility = View.INVISIBLE
             techniqueContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
@@ -129,6 +122,8 @@ class TechniqueReportFragment : Fragment() {
         val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
         val date = dateEditText.text.toString()
         val obj = objectEditText.text.toString()
+
+        objectUtils.saveObjectIfNotExists(objectEditText)
 
         val file = File(requireContext().filesDir, "technique_report.xml")
         val outputStream = FileOutputStream(file)

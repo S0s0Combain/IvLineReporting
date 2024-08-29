@@ -41,6 +41,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
     private lateinit var materialTypes: Map<String, List<String>>
     private lateinit var materialUnits: Map<String, String>
     private lateinit var progressDialog: AlertDialog
+    private lateinit var objectUtils: ObjectUtils
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -79,6 +80,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
                 materialUnits = materialUnitsMap
             }
         }
+        objectUtils = ObjectUtils(requireContext())
     }
 
     private suspend fun getMaterialsAndTypesFromDB(): Triple<List<String>, Map<String, List<String>>, Map<String, String>> {
@@ -148,6 +150,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         val deleteMaterialButton = materialLayout.findViewById<ImageView>(R.id.deleteMaterialButton)
         val materialEditText = materialLayout.findViewById<EditText>(R.id.materialEditText)
+        val searchMaterialButton = materialLayout.findViewById<ImageView>(R.id.searchMaterialButton)
         val materialParametersContainer =
             materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
         val unitMeasurementTextView = materialLayout.findViewById<TextView>(R.id.unitMeasurementTextView)
@@ -156,7 +159,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             (materialLayout.parent as ViewGroup).removeView(materialLayout)
         }
 
-        materialEditText.setOnClickListener {
+        searchMaterialButton.setOnClickListener {
             showMaterialDialog(
                 materialEditText,
                 materialParametersContainer,
@@ -244,13 +247,14 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         return validateActivityFields()
     }
 
-
     private fun createSpreadsheetMLFile() {
         val activity = requireActivity() as InputDataActivity
         val dateEditText = activity.findViewById<EditText>(R.id.dateEditText)
         val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
         val date = dateEditText.text.toString()
         val obj = objectEditText.text.toString()
+
+        objectUtils.saveObjectIfNotExists(objectEditText)
 
         val file = File(requireContext().filesDir, "material_report.xml")
         val outputStream = FileOutputStream(file)

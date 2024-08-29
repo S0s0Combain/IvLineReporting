@@ -31,7 +31,9 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
     private val REQUEST_IMAGE_PICK = 1
     private val REQUEST_IMAGE_CAPTURE = 2
     private val REQUEST_PDF_PICK = 3
+    private lateinit var objectUtils: ObjectUtils
     lateinit var imageRecyclerView: RecyclerView
+    private lateinit var objectEditText: EditText
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,13 +52,14 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
         imageRecyclerView = requireView().findViewById<RecyclerView>(R.id.recyclerView)
         imageRecyclerView.adapter = imageAdapter
         imageRecyclerView.layoutManager = GridLayoutManager(requireContext(), 3)
-
+        objectEditText = requireActivity().findViewById(R.id.objectEditText)
         val addItemButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemButton.setOnClickListener { showDialog() }
         val sendDataButton =
             requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendAttachment() }
+        objectUtils = ObjectUtils(requireContext())
     }
 
     override fun onAddItemClick() {
@@ -73,9 +76,10 @@ class ImagesFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListen
         if (!validateForm()) {
             return
         }
+        objectUtils.saveObjectIfNotExists(objectEditText)
         val dialog = AlertDialog.Builder(requireContext(), R.style.CustomAlertDialogYellow)
         dialog.setTitle("Отправка данных")
-        dialog.setMessage("Вы уверены, что хотите отправить отчет о выполненной работе?")
+        dialog.setMessage("Вы уверены, что хотите отправить прикрепленные вложения?")
         dialog.setPositiveButton("Подтвердить") { dialog, _ ->
                 dialog.dismiss()
             DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Ваша организованность в работе с файлами впечатляет!")
