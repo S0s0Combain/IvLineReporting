@@ -65,16 +65,31 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         val sendDataButton = requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendWorkReport() }
 
+        if(!NetworkUtils.isNetworkAvailable(requireContext())){
+            Toast.makeText(requireContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show()
+            requireActivity().onBackPressed()
+            return
+        }
+
         progressDialog.show()
 
         CoroutineScope(Dispatchers.IO).launch {
-            val brigadeType = requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                .getString("brigade_type", null) ?: ""
-            val (workList, workParametersMap) = getWorksAndParametersFromDB(brigadeType)
-            withContext(Dispatchers.Main) {
-                progressDialog.dismiss()
-                works = workList
-                workParameters = workParametersMap
+            try {
+                val brigadeType =
+                    requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                        .getString("brigade_type", null) ?: ""
+                val (workList, workParametersMap) = getWorksAndParametersFromDB(brigadeType)
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    works = workList
+                    workParameters = workParametersMap
+                }
+            }catch (e: Exception){
+                withContext(Dispatchers.Main){
+                    progressDialog.dismiss()
+                    Toast.makeText(requireContext(), "Ошибка сети", Toast.LENGTH_SHORT).show()
+                    requireActivity().onBackPressed()
+                }
             }
         }
         objectUtils = ObjectUtils(requireContext())

@@ -89,28 +89,41 @@ class LoginActivity : AppCompatActivity() {
         val currentLogin = loginEditText.text.toString()
         val currentPassword = passwordEditText.text.toString()
 
+        if(!NetworkUtils.isNetworkAvailable(this)){
+            Toast.makeText(applicationContext, "Нет доступа к интернету", Toast.LENGTH_SHORT).show()
+            return
+        }
+
         progressDialog.show()
 
         CoroutineScope(Dispatchers.IO).launch {
-            val result = authentificateUser(currentLogin, currentPassword)
-            withContext(Dispatchers.Main) {
-                progressDialog.dismiss()
-                if (result) {
-                    val (code, brigadeType) = getUserData(currentLogin)
-                    saveUserData(currentLogin, code, brigadeType.toString())
-                    val savedLogin = loadLogin()
-                    if (savedLogin == null || savedLogin != currentLogin) {
-                        showSaveLoginDialog(currentLogin)
+            try {
+                val result = authentificateUser(currentLogin, currentPassword)
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    if (result) {
+                        val (code, brigadeType) = getUserData(currentLogin)
+                        saveUserData(currentLogin, code, brigadeType.toString())
+                        val savedLogin = loadLogin()
+                        if (savedLogin == null || savedLogin != currentLogin) {
+                            showSaveLoginDialog(currentLogin)
+                        } else {
+                            val intent = Intent(this@LoginActivity, MainActivity::class.java)
+                            startActivity(intent)
+                        }
                     } else {
-                        val intent = Intent(this@LoginActivity, MainActivity::class.java)
-                        startActivity(intent)
+                        Toast.makeText(
+                            applicationContext,
+                            "Неверный логин или пароль",
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
-                } else {
-                    Toast.makeText(
-                        applicationContext,
-                        "Неверный логин или пароль",
-                        Toast.LENGTH_SHORT
-                    ).show()
+                }
+            }
+            catch(e: Exception){
+                withContext(Dispatchers.Main){
+                    progressDialog.dismiss()
+                    Toast.makeText(applicationContext, "Ошибка сети", Toast.LENGTH_SHORT).show()
                 }
             }
         }

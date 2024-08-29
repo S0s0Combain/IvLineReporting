@@ -62,14 +62,28 @@ class TechniqueReportFragment : Fragment() {
         val sendDataButton = requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendTechniqueReport() }
 
+        if(!NetworkUtils.isNetworkAvailable(requireContext())){
+            Toast.makeText(requireContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show()
+            requireActivity().onBackPressed()
+            return
+        }
+
         progressDialog.show()
 
         CoroutineScope(Dispatchers.IO).launch {
-            val (rentedTechniques, nonRentedTechniques) = getTechniqueNamesFromDB()
-            withContext(Dispatchers.Main) {
-                progressDialog.dismiss()
-                this@TechniqueReportFragment.rentedTechniques = rentedTechniques
-                this@TechniqueReportFragment.nonRentedTechniques = nonRentedTechniques
+            try {
+                val (rentedTechniques, nonRentedTechniques) = getTechniqueNamesFromDB()
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    this@TechniqueReportFragment.rentedTechniques = rentedTechniques
+                    this@TechniqueReportFragment.nonRentedTechniques = nonRentedTechniques
+                }
+            }catch (e: Exception){
+                withContext(Dispatchers.Main){
+                    progressDialog.dismiss()
+                    Toast.makeText(requireContext(), "Ошибка сети", Toast.LENGTH_SHORT).show()
+                    requireActivity().onBackPressed()
+                }
             }
         }
         objectUtils = ObjectUtils(requireContext())

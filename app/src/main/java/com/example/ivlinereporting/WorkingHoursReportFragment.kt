@@ -61,16 +61,30 @@ class WorkingHoursReportFragment : Fragment() {
             requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendWorkingHoursReport() }
 
+        if (!NetworkUtils.isNetworkAvailable(requireContext())) {
+            Toast.makeText(requireContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show()
+            requireActivity().onBackPressed()
+            return
+        }
+
         progressDialog.show()
 
         CoroutineScope(Dispatchers.IO).launch {
-            val brigadeType =
-                requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
-                    .getString("brigade_type", null) ?: ""
-            val workers = getWorkersNamesFromDB(brigadeType)
-            withContext(Dispatchers.Main) {
-                progressDialog.dismiss()
-                this@WorkingHoursReportFragment.workers = workers
+            try {
+                val brigadeType =
+                    requireActivity().getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                        .getString("brigade_type", null) ?: ""
+                val workers = getWorkersNamesFromDB(brigadeType)
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    this@WorkingHoursReportFragment.workers = workers
+                }
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    Toast.makeText(requireContext(), "Ошибка сети", Toast.LENGTH_SHORT).show()
+                    requireActivity().onBackPressed()
+                }
             }
         }
         objectUtils = ObjectUtils(requireContext())

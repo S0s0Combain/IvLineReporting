@@ -14,6 +14,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Scroller
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -82,6 +83,12 @@ class InputDataActivity : AppCompatActivity(), DatePickerFragment.DatePickerDial
         val user = getSharedPreferences("user_prefs", MODE_PRIVATE).getString("login", null)
         val loginTextView = navigationView.getHeaderView(0).findViewById<TextView>(R.id.loginTextView)
         loginTextView.text = user ?: "Неизвестный пользователь"
+
+        if (!NetworkUtils.isNetworkAvailable(this)) {
+            Toast.makeText(this, "Нет доступа к интернету", Toast.LENGTH_SHORT).show()
+            finish()
+            return
+        }
 
         showFragment(fragment)
 

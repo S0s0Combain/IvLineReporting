@@ -69,15 +69,29 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendMaterialsReport() }
 
+        if(!NetworkUtils.isNetworkAvailable(requireContext())){
+            Toast.makeText(requireContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show()
+            requireActivity().onBackPressed()
+            return
+        }
+
         progressDialog.show()
 
         CoroutineScope(Dispatchers.IO).launch {
-            val (materialList, materialTypesMap, materialUnitsMap) = getMaterialsAndTypesFromDB()
-            withContext(Dispatchers.Main){
-                progressDialog.dismiss()
-                materials = materialList
-                materialTypes = materialTypesMap
-                materialUnits = materialUnitsMap
+            try {
+                val (materialList, materialTypesMap, materialUnitsMap) = getMaterialsAndTypesFromDB()
+                withContext(Dispatchers.Main) {
+                    progressDialog.dismiss()
+                    materials = materialList
+                    materialTypes = materialTypesMap
+                    materialUnits = materialUnitsMap
+                }
+            }catch (e: Exception){
+                withContext(Dispatchers.Main){
+                    progressDialog.dismiss()
+                    Toast.makeText(requireContext(), "Ошибка сети", Toast.LENGTH_SHORT).show()
+                    requireActivity().onBackPressed()
+                }
             }
         }
         objectUtils = ObjectUtils(requireContext())

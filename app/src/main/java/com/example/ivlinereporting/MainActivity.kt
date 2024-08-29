@@ -12,6 +12,7 @@ import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.Scroller
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
@@ -55,6 +56,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun onSelectButton_onClick(v: View) {
+        if(!NetworkUtils.isNetworkAvailable(this)){
+            Toast.makeText(applicationContext, "Нет доступа к интернету", Toast.LENGTH_SHORT).show()
+            return
+        }
         val intent = Intent(this, InputDataActivity::class.java)
         val fragmentType = when (v.id) {
             R.id.selectWorkReportButton -> "workReport"
