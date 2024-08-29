@@ -2,10 +2,8 @@ package com.example.ivlinereporting
 
 import android.app.AlertDialog
 import android.app.ProgressDialog
-import android.app.job.JobWorkItem
 import android.content.Context
 import android.icu.util.Calendar
-import android.icu.util.Output
 import android.os.Build
 import android.os.Bundle
 import android.text.Editable
@@ -94,13 +92,14 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
 
         val deleteWorkButton = workLayout.findViewById<ImageView>(R.id.deleteWorkButton)
         val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
+        val searchWorkButton = workLayout.findViewById<ImageView>(R.id.searchWorkButton)
         val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
         deleteWorkButton.setOnClickListener {
             (workLayout.parent as ViewGroup).removeView(workLayout)
         }
 
-        workEditText.setOnClickListener { showWorkDialog(workEditText, workParametersContainer) }
+        searchWorkButton.setOnClickListener { showWorkDialog(workEditText, workParametersContainer) }
 
         workContainer.addView(workLayout)
     }
@@ -244,7 +243,6 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         val averageCharWidth = 8
         return maxLength * averageCharWidth
     }
-
 
     fun calculateTotalWorks(): Int {
         return workContainer.childCount
