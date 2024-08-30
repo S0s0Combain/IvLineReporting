@@ -38,4 +38,8 @@
     <string name="search_work">Поиск работ</string>
     <string name="search_worker">Поиск сотрудника</string>
     <string name="type">Тип</string>
+    <string name="employee">Сотрудник</string>
+    <string name="technic">Техника</string>
+    <string name="quantity">Кол.</string>
+    <string name="hours">Часы</string>
 </resources>

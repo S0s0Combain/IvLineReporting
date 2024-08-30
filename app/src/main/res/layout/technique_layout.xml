@@ -21,15 +21,15 @@
         android:layout_weight="3"
         android:focusable="false"
         android:clickable="true"
-        android:hint="Техника"/>
+        android:hint="@string/technic"/>
     <ImageView
         android:id="@+id/searchTechniqueButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:focusable="true"
         android:src="@drawable/baseline_search_24"
-        android:clickable="true"/>
+        android:focusable="true"
+        android:focusableInTouchMode="true"/>
     <Spinner
         style="@style/Widget.AppCompat.Spinner.Underlined"
         android:id="@+id/timeType"
@@ -49,6 +49,6 @@
         android:inputType="number"
         android:maxLength="2"
         android:gravity="start"
-        android:hint="Кол."
+        android:hint="@string/quantity"
         tools:ignore="RtlCompat" />
 </LinearLayout>
