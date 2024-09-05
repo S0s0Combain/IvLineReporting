@@ -38,6 +38,7 @@ class WorkingHoursReportFragment : Fragment() {
     private lateinit var progressDialog: ProgressDialog
     private lateinit var objectUtils: ObjectUtils
 
+    lateinit var titleLinearLayout: LinearLayout
     lateinit var workersContainer: LinearLayout
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -48,6 +49,7 @@ class WorkingHoursReportFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         workersViews = mutableMapOf()
         workersContainer = requireView().findViewById<LinearLayout>(R.id.workersContainer)
         progressDialog = ProgressDialog(requireContext())
@@ -167,7 +169,7 @@ class WorkingHoursReportFragment : Fragment() {
                 )
             }
             createSpreadsheetMLFile()
-
+            titleLinearLayout.visibility = View.INVISIBLE
             workersContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
@@ -366,17 +368,22 @@ class WorkingHoursReportFragment : Fragment() {
     }
 
     private fun addWorker() {
+        if (titleLinearLayout.isInvisible) {
+            titleLinearLayout.visibility = View.VISIBLE
+        }
         val workerLayout = layoutInflater.inflate(R.layout.worker_layout, null)
 
         val deleteWorkerButton = workerLayout.findViewById<ImageView>(R.id.deleteWorkerButton)
         val workerEditText = workerLayout.findViewById<EditText>(R.id.workerEditText)
-        val searchWorkerButton = workerLayout.findViewById<ImageView>(R.id.searchWorkerButton)
-
-        searchWorkerButton.setOnClickListener { showWorkerDialog(workerEditText) }
 
         deleteWorkerButton.setOnClickListener {
             (workerLayout.parent as ViewGroup).removeView(workerLayout)
+            if (workersContainer.childCount == 0) {
+                titleLinearLayout.visibility = View.INVISIBLE
+            }
         }
+
+        workerEditText.setOnClickListener{showWorkerDialog(workerEditText)}
 
         workersContainer.addView(workerLayout)
     }

@@ -38,6 +38,7 @@ class TechniqueReportFragment : Fragment() {
     private lateinit var nonRentedTechniques: List<String>
     private lateinit var progressDialog: ProgressDialog
     private lateinit var objectUtils: ObjectUtils
+    private lateinit var titleLinearLayout: LinearLayout
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -50,6 +51,7 @@ class TechniqueReportFragment : Fragment() {
     @RequiresApi(Build.VERSION_CODES.N)
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        titleLinearLayout = requireView().findViewById(R.id.titleLinearLayout)
         techniqueContainer = requireView().findViewById(R.id.techniqueContainer)
         techniqueViews = mutableMapOf()
         progressDialog = ProgressDialog(requireContext())
@@ -90,17 +92,23 @@ class TechniqueReportFragment : Fragment() {
     }
 
     private fun addTechnique() {
+        if (titleLinearLayout.isInvisible) {
+            titleLinearLayout.visibility = View.VISIBLE
+        }
         val techniqueLayout = layoutInflater.inflate(R.layout.technique_layout, null)
 
         val deleteTechniqueButton = techniqueLayout.findViewById<ImageView>(R.id.deleteTechniqueButton)
         val techniqueEditText = techniqueLayout.findViewById<EditText>(R.id.techniqueEditText)
-        val searchTechniqueButton = techniqueLayout.findViewById<ImageView>(R.id.searchTechniqueButton)
-
-        searchTechniqueButton.setOnClickListener { showTechniqueDialog(techniqueEditText) }
 
         deleteTechniqueButton.setOnClickListener {
             (techniqueLayout.parent as ViewGroup).removeView(techniqueLayout)
+
+            if (techniqueContainer.childCount == 0) {
+                titleLinearLayout.visibility = View.INVISIBLE
+            }
         }
+
+        techniqueEditText.setOnClickListener{showTechniqueDialog(techniqueEditText)}
 
         techniqueContainer.addView(techniqueLayout)
     }
@@ -122,6 +130,7 @@ class TechniqueReportFragment : Fragment() {
                 "Вы тщательно отследили использование техники! Отличная работа!"
             )
             createSpreadsheetMLFile()
+            titleLinearLayout.visibility = View.INVISIBLE
             techniqueContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->

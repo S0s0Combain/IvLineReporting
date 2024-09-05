@@ -109,14 +109,13 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
 
         val deleteWorkButton = workLayout.findViewById<ImageView>(R.id.deleteWorkButton)
         val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
-        val searchWorkButton = workLayout.findViewById<ImageView>(R.id.searchWorkButton)
         val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
         deleteWorkButton.setOnClickListener {
             (workLayout.parent as ViewGroup).removeView(workLayout)
         }
 
-        searchWorkButton.setOnClickListener { showWorkDialog(workEditText, workParametersContainer) }
+        workEditText.setOnClickListener{showWorkDialog(workEditText, workParametersContainer)}
 
         workContainer.addView(workLayout)
     }

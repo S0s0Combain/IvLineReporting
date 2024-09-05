@@ -36,9 +36,7 @@ import java.sql.Connection
 class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
     lateinit var materialsContainer: LinearLayout
     private lateinit var materialViews: MutableMap<String, EditText>
-    private lateinit var materialTypesViews: MutableMap<String, Spinner>
     private lateinit var materials: List<String>
-    private lateinit var materialTypes: Map<String, List<String>>
     private lateinit var materialUnits: Map<String, String>
     private lateinit var progressDialog: AlertDialog
     private lateinit var objectUtils: ObjectUtils
@@ -57,7 +55,6 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         materialsContainer = requireView().findViewById(R.id.materialsContainer)
         materialViews = mutableMapOf()
-        materialTypesViews = mutableMapOf()
         progressDialog = ProgressDialog(requireContext())
         progressDialog.setMessage("Пожалуйста, подождите...")
         progressDialog.setCancelable(false)
@@ -79,11 +76,10 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val (materialList, materialTypesMap, materialUnitsMap) = getMaterialsAndTypesFromDB()
+                val (materialList, materialUnitsMap) = getMaterialsAndTypesFromDB()
                 withContext(Dispatchers.Main) {
                     progressDialog.dismiss()
                     materials = materialList
-                    materialTypes = materialTypesMap
                     materialUnits = materialUnitsMap
                 }
             }catch (e: Exception){
@@ -97,14 +93,13 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         objectUtils = ObjectUtils(requireContext())
     }
 
-    private suspend fun getMaterialsAndTypesFromDB(): Triple<List<String>, Map<String, List<String>>, Map<String, String>> {
+    private suspend fun getMaterialsAndTypesFromDB(): Pair<List<String>, Map<String, String>> {
         return withContext(Dispatchers.IO) {
             val dbConnection = DatabaseConnection()
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
             val connection: Connection = dbConnection.createConnection()
 
             val materials = mutableListOf<String>()
-            val materialTypes = mutableMapOf<String, List<String>>()
             val materialUnits = mutableMapOf<String, String>()
 
             val userBrigadeType = getUserBrigadeType(connection)
@@ -117,22 +112,10 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
                 val unitMeasurement = materialResultSet.getString("единица_измерения")
                 materials.add(materialName)
                 materialUnits[materialName] = unitMeasurement
-
-                val typesStatement = connection.prepareStatement(
-                    "SELECT тм.значение FROM типы_материалов тм JOIN материалы_типы_материалов мтм ON тм.код = мтм.код_типа WHERE мтм.код_материала = (SELECT код FROM материалы WHERE наименование = ?)"
-                )
-                typesStatement.setString(1, materialName)
-                val typesResultSet = typesStatement.executeQuery()
-                val types = mutableListOf<String>()
-                while (typesResultSet.next()) {
-                    val typeValue = typesResultSet.getString("значение")
-                    types.add(typeValue)
-                }
-                materialTypes[materialName] = types
             }
 
             dbConnection.closeConnection(connection)
-            Triple(materials, materialTypes, materialUnits)
+            Pair(materials, materialUnits)
         }
     }
 
@@ -164,22 +147,13 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         val deleteMaterialButton = materialLayout.findViewById<ImageView>(R.id.deleteMaterialButton)
         val materialEditText = materialLayout.findViewById<EditText>(R.id.materialEditText)
-        val searchMaterialButton = materialLayout.findViewById<ImageView>(R.id.searchMaterialButton)
-        val materialParametersContainer =
-            materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
         val unitMeasurementTextView = materialLayout.findViewById<TextView>(R.id.unitMeasurementTextView)
 
         deleteMaterialButton.setOnClickListener {
             (materialLayout.parent as ViewGroup).removeView(materialLayout)
         }
 
-        searchMaterialButton.setOnClickListener {
-            showMaterialDialog(
-                materialEditText,
-                materialParametersContainer,
-                unitMeasurementTextView
-            )
-        }
+        materialEditText.setOnClickListener{showMaterialDialog(materialEditText, unitMeasurementTextView)}
 
         materialsContainer.addView(materialLayout)
     }
@@ -361,7 +335,6 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         var maxLength = 0
         for (i in 0 until materialsContainer.childCount) {
             val materialLayout = materialsContainer.getChildAt(i) as LinearLayout
-            val materialEditText = materialLayout.findViewById<EditText>(R.id.materialEditText)
             val materialParametersContainer = materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
             val typeSpinner = materialParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
             if (typeSpinner != null) {
@@ -457,7 +430,6 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
     private fun showMaterialDialog(
         materialEditText: EditText,
-        materialParametersContainer: LinearLayout,
         unitMeasurementTextView: TextView
     ) {
         val dialogView = layoutInflater.inflate(R.layout.dialog_search_material, null)
@@ -471,7 +443,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         val adapter = MaterialAdapter(materials) { selectedMaterial ->
             materialEditText.setText(selectedMaterial)
-            updateMaterialParameters(materialParametersContainer, selectedMaterial, unitMeasurementTextView)
+            unitMeasurementTextView.text = materialUnits[selectedMaterial]
             dialog.dismiss()
         }
         materialsRecyclerView.layoutManager = LinearLayoutManager(requireContext())
@@ -488,32 +460,5 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         })
 
         dialog.show()
-    }
-
-    private fun updateMaterialParameters(
-        materialParametersContainer: LinearLayout,
-        materialName: String,
-        unitMeasurementTextView: TextView
-    ) {
-        materialParametersContainer.removeAllViews()
-        val types = materialTypes[materialName] ?: listOf()
-
-        if (types.isNotEmpty()) {
-            val parameterLayout = layoutInflater.inflate(R.layout.parameter_item, null)
-            val parameterValueSpinner = parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
-
-            val parameterAdapter = ArrayAdapter<String>(
-                requireContext(),
-                android.R.layout.simple_spinner_item,
-                types
-            )
-            parameterAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item)
-            parameterValueSpinner.adapter = parameterAdapter
-
-            materialTypesViews[materialName] = parameterValueSpinner
-            materialParametersContainer.addView(parameterLayout)
-        }
-
-        unitMeasurementTextView.text = materialUnits[materialName]
     }
 }

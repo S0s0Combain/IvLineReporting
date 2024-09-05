@@ -17,29 +17,19 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_weight="6"
-        android:hint="@string/employee"
-        android:focusable="true"
-        android:focusableInTouchMode="true"
-        android:textSize="16sp"/>
-    <ImageView
-        android:id="@+id/searchWorkerButton"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:focusable="true"
-        android:src="@drawable/baseline_search_24"
+        android:layout_weight="7"
+        android:textSize="16sp"
+        android:focusable="false"
         android:clickable="true"/>
+
     <EditText
         android:id="@+id/hoursEditText"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_gravity="center_vertical"
-        android:layout_weight="1.1"
+        android:layout_weight="1"
         android:inputType="number"
         android:maxLength="2"
-        android:gravity="start"
-        android:hint="@string/hours"
         android:textSize="16sp"
         android:textAlignment="center"
         tools:ignore="RtlCompat" />
