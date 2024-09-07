@@ -1,182 +1,180 @@
 package com.example.ivlinereporting
 
 import HelpAdapter
-import android.content.Context
+import HelpItem
 import android.content.Intent
 import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.TextPaint
-import android.text.method.LinkMovementMethod
 import android.text.style.ClickableSpan
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
-import android.widget.Button
 import android.widget.ExpandableListView
+import android.widget.FrameLayout
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.widget.Toolbar
 import androidx.core.content.ContextCompat
+import androidx.drawerlayout.widget.DrawerLayout
+import com.google.android.material.navigation.NavigationView
 
 class HelpActivity : AppCompatActivity() {
+    private lateinit var drawerLayout: DrawerLayout
+    private lateinit var toolbar: Toolbar
+    private lateinit var navigationView: NavigationView
+    private lateinit var menuHandler: MenuHandler
     private lateinit var expandableListView: ExpandableListView
-    private lateinit var adapter: HelpAdapter
-    private lateinit var groupList: List<String>
-    private lateinit var childList: HashMap<String, List<Any>>
+    private lateinit var helpAdapter: HelpAdapter
+    private lateinit var listDataHeader: List<String>
+    private lateinit var listDataChild: HashMap<String, List<HelpItem>>
+    private var currentExpandedPosition: Pair<Int, Int>? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         setContentView(R.layout.activity_help)
+        window.statusBarColor = ContextCompat.getColor(this, R.color.yellow)
+        toolbar = findViewById(R.id.toolbar)
+        setSupportActionBar(toolbar)
+        drawerLayout = findViewById(R.id.drawerLayout)
+        navigationView = findViewById(R.id.navView)
+        menuHandler =
+            MenuHandler(this, drawerLayout, toolbar, R.string.open_nav, R.string.close_nav)
+
+        navigationView.setNavigationItemSelectedListener { item ->
+            menuHandler.onNavigationItemSelected(item)
+        }
+        val user = getSharedPreferences("user_prefs", MODE_PRIVATE).getString("login", null)
+        val loginTextView = navigationView.getHeaderView(0).findViewById<TextView>(R.id.loginTextView)
+        loginTextView.text = user ?: "Неизвестный пользователь"
 
         expandableListView = findViewById(R.id.expandableListView)
-        val btnBack = findViewById<Button>(R.id.btn_back)
+        prepareListData()
+        helpAdapter = HelpAdapter(this, listDataHeader, listDataChild)
+        expandableListView.setAdapter(helpAdapter)
 
-        btnBack.setOnClickListener {
-            finish()
-        }
+        expandableListView.setOnChildClickListener { _, _, groupPosition, childPosition, _ ->
+            val helpItem = listDataChild[listDataHeader[groupPosition]]?.get(childPosition)
+            val layoutResId = helpItem?.layoutResId
+            Log.d("MyLogTag", "Child clicked at group: $groupPosition, child: $childPosition")
+            if (layoutResId != null) {
+                Log.d("MyLogTag", "Inflating layout: $layoutResId")
+                val flatPosition = expandableListView.getFlatListPosition(
+                    ExpandableListView.getPackedPositionForChild(
+                        groupPosition,
+                        childPosition
+                    )
+                )
+                Log.d("MyLogTag", "Flat position: $flatPosition")
+                val childView =
+                    expandableListView.getChildAt(flatPosition - expandableListView.firstVisiblePosition)
+                val detailContainer = childView?.findViewById<FrameLayout>(R.id.detailContainer)
 
-        createGroupList()
-        createChildList()
-
-        adapter = HelpAdapter(this, groupList, childList)
-        expandableListView.setAdapter(adapter)
-
-        expandableListView.setOnGroupExpandListener { groupPosition ->
-            for (i in 0 until adapter.groupCount) {
-                if (i != groupPosition) {
-                    expandableListView.collapseGroup(i)
-                }
-            }
-        }
-
-        expandableListView.setOnChildClickListener { parent, v, groupPosition, childPosition, id ->
-            val selectedGroup = groupList[groupPosition]
-            val selectedChild = childList[selectedGroup]!![childPosition]
-
-            if (selectedChild is LayoutItem) {
-                // Обновляем адаптер, чтобы показать layout
-                adapter.notifyDataSetChanged()
-            } else {
-                when (selectedGroup) {
-                    "О приложении" -> {
-                        val layout = layoutInflater.inflate(R.layout.layout_about_app, null)
-                        showLayout(layout, groupPosition, childPosition)
+                if (currentExpandedPosition == Pair(groupPosition, childPosition)) {
+                    detailContainer?.visibility =
+                        if (detailContainer?.visibility == View.VISIBLE) View.GONE else View.VISIBLE
+                    currentExpandedPosition = null
+                } else {
+                    for (i in 0 until expandableListView.count) {
+                        val groupView = expandableListView.getChildAt(i)
+                        val groupDetailContainer =
+                            groupView?.findViewById<FrameLayout>(R.id.detailContainer)
+                        groupDetailContainer?.visibility = View.GONE
                     }
-                    "Обратная связь" -> {
-                        val layout = layoutInflater.inflate(R.layout.layout_feedback, null)
-                        val tvFeedback = layout.findViewById<TextView>(R.id.tv_feedback)
-                        val helpText = "Если у вас возникли проблемы при использовании приложения, пожалуйста, обратитесь по адресу "
-                        val emailAddress = "dev.assist@.yandex.ru"
-                        val fullText = "$helpText$emailAddress"
 
-                        val spannableString = SpannableString(fullText)
-                        val clickableSpan = object : ClickableSpan() {
-                            override fun onClick(widget: View) {
-                                val intent = Intent(Intent.ACTION_SEND).apply {
-                                    type = "text/plain"
-                                    putExtra(Intent.EXTRA_EMAIL, arrayOf(emailAddress))
-                                    putExtra(Intent.EXTRA_SUBJECT, "Помощь по приложению")
-                                    putExtra(
-                                        Intent.EXTRA_TEXT,
-                                        "Здравствуйте, \n\nУ меня возникли проблемы с использованием приложения..."
-                                    )
-                                }
-                                if (intent.resolveActivity(packageManager) != null) {
-                                    startActivity(intent)
-                                } else {
-                                    Toast.makeText(
-                                        this@HelpActivity,
-                                        "Нет приложения для отправки почты",
-                                        Toast.LENGTH_SHORT
-                                    ).show()
-                                }
-                            }
-
-                            override fun updateDrawState(ds: TextPaint) {
-                                super.updateDrawState(ds)
-                                ds.isUnderlineText = false
-                                ds.color = ContextCompat.getColor(this@HelpActivity, android.R.color.holo_blue_light)
-                            }
-                        }
-
-                        spannableString.setSpan(
-                            clickableSpan,
-                            helpText.length,
-                            fullText.length,
-                            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
-                        )
-
-                        tvFeedback.text = spannableString
-                        tvFeedback.movementMethod = LinkMovementMethod.getInstance()
-                        showLayout(layout, groupPosition, childPosition)
-                    }
-                    "Главная страница" -> {
-                        val layout = layoutInflater.inflate(R.layout.layout_main_page, null)
-                        showLayout(layout, groupPosition, childPosition)
-                    }
-                    "Ввод данных" -> {
-                        when (selectedChild) {
-                            "Как ввести данные о выполненной работе" -> {
-                                val layout = layoutInflater.inflate(R.layout.layout_data_entry_work, null)
-                                showLayout(layout, groupPosition, childPosition)
-                            }
-                            "Как ввести данные об отработанных часах" -> {
-                                val layout = layoutInflater.inflate(R.layout.layout_data_entry_hours, null)
-                                showLayout(layout, groupPosition, childPosition)
-                            }
-                            "Как ввести данные об использованной технике" -> {
-                                val layout = layoutInflater.inflate(R.layout.layout_data_entry_equipment, null)
-                                showLayout(layout, groupPosition, childPosition)
-                            }
-                        }
-                    }
-                    "Отправка данных" -> {
-                        val layout = layoutInflater.inflate(R.layout.layout_data_send, null)
-                        showLayout(layout, groupPosition, childPosition)
-                    }
+                    detailContainer?.removeAllViews()
+                    val detailView = LayoutInflater.from(this).inflate(layoutResId, null)
+                    detailContainer?.addView(detailView)
+                    detailContainer?.visibility = View.VISIBLE
+                    currentExpandedPosition = Pair(groupPosition, childPosition)
                 }
             }
             true
         }
     }
 
-    private fun createGroupList() {
-        groupList = listOf(
-            "О приложении",
-            "Обратная связь",
-            "Главная страница",
-            "Ввод данных",
-            "Отправка данных"
+    private fun prepareListData() {
+        listDataHeader =
+            listOf(
+                "О приложении",
+                "Обратная связь",
+                "Главная страница",
+                "Ввод данных",
+                "Отправка данных"
+            )
+        listDataChild = HashMap()
+
+        val mainPage = listOf(
+            HelpItem("Обзор главной страницы.", R.layout.main_review_help),
+            HelpItem("Как выбрать вид отчета.", R.layout.type_choosing_help)
         )
+
+        val dataInput = listOf(
+            HelpItem("Как ввести данные о выполненной работе.", R.layout.input_work_help),
+            HelpItem("Как ввести данные об отработанных часах.", R.layout.input_working_hours_help),
+            HelpItem("Как ввести данные об использованной технике.", R.layout.input_technique_help)
+        )
+
+        listDataChild[listDataHeader[0]] = listOf(HelpItem("Имя приложения: ${getString(R.string.app_name)}\nВерсия: ${getAppVersion()}\nРазработчик: Кудринский Артем", 0))
+        listDataChild[listDataHeader[1]] = listOf(HelpItem(getHelpText(), 0))
+        listDataChild[listDataHeader[2]] = mainPage
+        listDataChild[listDataHeader[3]] = dataInput
+        listDataChild[listDataHeader[4]] = listOf()
     }
 
-    private fun createChildList() {
-        childList = HashMap()
-
-        childList["О приложении"] = listOf("Это приложение помогает вам...")
-        childList["Обратная связь"] = listOf("Если у вас возникли проблемы при использовании приложения...")
-        childList["Главная страница"] = listOf(
-            "Как выбрать раздел",
-            LayoutItem(R.layout.layout_main_page),
-            "Описание меню",
-            LayoutItem(R.layout.layout_main_page)
-        )
-        childList["Ввод данных"] = listOf(
-            "Как ввести данные о выполненной работе",
-            LayoutItem(R.layout.layout_data_entry_work),
-            "Как ввести данные об отработанных часах",
-            LayoutItem(R.layout.layout_data_entry_hours),
-            "Как ввести данные об использованной технике",
-            LayoutItem(R.layout.layout_data_entry_equipment)
-        )
-        childList["Отправка данных"] = listOf("Как отправить данные")
+    private fun getAppVersion(): String {
+        val packageInfo = packageManager.getPackageInfo(packageName, 0)
+        return packageInfo.versionName
     }
 
-    private fun showLayout(layout: View, groupPosition: Int, childPosition: Int) {
-        val container = findViewById<ViewGroup>(R.id.container)
-        container.removeAllViews()
-        container.addView(layout)
-        container.visibility = View.VISIBLE
+    private fun getHelpText(): SpannableString {
+        val helpText =
+            "Если у вас возникли проблемы при использовании приложения, пожалуйста, обратитесь по адресу "
+        val emailAddress = "dev.assist@.yandex.ru"
+        val fullText = "$helpText$emailAddress"
+
+        val spannableString = SpannableString(fullText)
+        val clickableSpan = object : ClickableSpan() {
+            override fun onClick(widget: View) {
+                val intent = Intent(Intent.ACTION_SEND).apply {
+                    type = "text/plain"
+                    putExtra(Intent.EXTRA_EMAIL, arrayOf(emailAddress))
+                    putExtra(Intent.EXTRA_SUBJECT, "Помощь по приложению")
+                    putExtra(
+                        Intent.EXTRA_TEXT,
+                        "Здравствуйте, \n\nУ меня возникли проблемы с использованием приложения..."
+                    )
+                }
+                if (intent.resolveActivity(packageManager) != null) {
+                    startActivity(intent)
+                } else {
+                    Toast.makeText(
+                        this@HelpActivity,
+                        "Нет приложения для отправки почты",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+
+            override fun updateDrawState(ds: TextPaint) {
+                super.updateDrawState(ds)
+                ds.isUnderlineText = false
+                ds.color =
+                    ContextCompat.getColor(this@HelpActivity, android.R.color.holo_blue_light)
+            }
+        }
+
+        spannableString.setSpan(
+            clickableSpan,
+            helpText.length,
+            fullText.length,
+            Spannable.SPAN_EXCLUSIVE_EXCLUSIVE
+        )
+
+        return spannableString
     }
 }
