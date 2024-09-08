@@ -10,6 +10,7 @@ import androidx.appcompat.app.AppCompatActivity
 class HelpActivity : AppCompatActivity() {
     private lateinit var expandableListView: ExpandableListView
     private lateinit var helpAdapter: HelpAdapter
+    private var currentSubSectionView: View? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,7 +56,15 @@ class HelpActivity : AppCompatActivity() {
         expandableListView.setOnChildClickListener { parent, v, groupPosition, childPosition, id ->
             val item = helpAdapter.getChild(groupPosition, childPosition)
             if (item is Item.SubSection) {
-                showSubSectionLayout(v, item)
+                if (currentSubSectionView != null && currentSubSectionView == v) {
+                    // Если нажали на тот же подраздел, скрываем его
+                    hideSubSectionLayout(v)
+                } else {
+                    // Если нажали на другой подраздел, скрываем текущий и показываем новый
+                    currentSubSectionView?.let { hideSubSectionLayout(it) }
+                    showSubSectionLayout(v, item)
+                    currentSubSectionView = v
+                }
             }
             true
         }
@@ -68,5 +77,11 @@ class HelpActivity : AppCompatActivity() {
         val inflatedView = layoutInflater.inflate(layoutId, frameLayout, false)
         frameLayout.addView(inflatedView)
         frameLayout.visibility = View.VISIBLE
+    }
+
+    private fun hideSubSectionLayout(view: View) {
+        val frameLayout = view.findViewById<FrameLayout>(R.id.sub_section_content)
+        frameLayout.removeAllViews()
+        frameLayout.visibility = View.GONE
     }
 }
