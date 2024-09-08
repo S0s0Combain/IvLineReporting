@@ -7,22 +7,16 @@ import android.view.ViewGroup
 import android.widget.BaseExpandableListAdapter
 import android.widget.TextView
 
-class HelpAdapter(private val context: Context, private val sections: List<Section>) :
+class SubSectionAdapter(private val context: Context, private val subItems: List<Item.LayoutItem>) :
     BaseExpandableListAdapter() {
 
-    override fun getGroupCount(): Int = sections.size
+    override fun getGroupCount(): Int = subItems.size
 
-    override fun getChildrenCount(groupPosition: Int): Int {
-        val section = sections[groupPosition]
-        return section.items.size
-    }
+    override fun getChildrenCount(groupPosition: Int): Int = 1
 
-    override fun getGroup(groupPosition: Int): Any = sections[groupPosition]
+    override fun getGroup(groupPosition: Int): Any = subItems[groupPosition]
 
-    override fun getChild(groupPosition: Int, childPosition: Int): Any {
-        val section = sections[groupPosition]
-        return section.items[childPosition]
-    }
+    override fun getChild(groupPosition: Int, childPosition: Int): Any = subItems[groupPosition]
 
     override fun getGroupId(groupPosition: Int): Long = groupPosition.toLong()
 
@@ -39,7 +33,7 @@ class HelpAdapter(private val context: Context, private val sections: List<Secti
         val view = convertView ?: LayoutInflater.from(context)
             .inflate(android.R.layout.simple_expandable_list_item_1, parent, false)
         val textView = view.findViewById<TextView>(android.R.id.text1)
-        textView.text = sections[groupPosition].title
+        textView.text = "SubItem ${groupPosition + 1}"
         return view
     }
 
@@ -50,18 +44,8 @@ class HelpAdapter(private val context: Context, private val sections: List<Secti
         convertView: View?,
         parent: ViewGroup?
     ): View {
-        val item = sections[groupPosition].items[childPosition]
-        return when (item) {
-            is Item.LayoutItem -> {
-                LayoutInflater.from(context).inflate(item.layoutId, parent, false)
-            }
-            is Item.SubSection -> {
-                val view = LayoutInflater.from(context).inflate(R.layout.sub_section_layout, parent, false)
-                val textView = view.findViewById<TextView>(R.id.sub_section_title)
-                textView.text = item.title
-                view
-            }
-        }
+        val layoutId = subItems[groupPosition].layoutId
+        return LayoutInflater.from(context).inflate(layoutId, parent, false)
     }
 
     override fun isChildSelectable(groupPosition: Int, childPosition: Int): Boolean = true
