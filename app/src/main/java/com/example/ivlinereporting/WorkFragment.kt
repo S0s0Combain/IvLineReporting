@@ -28,10 +28,18 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.ByteArrayInputStream
 import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.sql.Connection
+import java.sql.Date
+import java.sql.Statement
+import java.sql.Timestamp
+import java.text.Format
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
     lateinit var workContainer: LinearLayout
@@ -60,12 +68,14 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         progressDialog.setMessage("Пожалуйста, подождите...")
         progressDialog.setCancelable(false)
 
-        val addItemsButton = requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
+        val addItemsButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.addItemsButton)
         addItemsButton.setOnClickListener { addWork() }
-        val sendDataButton = requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
+        val sendDataButton =
+            requireActivity().findViewById<FloatingActionButton>(R.id.sendDataButton)
         sendDataButton.setOnClickListener { sendWorkReport() }
 
-        if(!NetworkUtils.isNetworkAvailable(requireContext())){
+        if (!NetworkUtils.isNetworkAvailable(requireContext())) {
             Toast.makeText(requireContext(), "Нет доступа к интернету", Toast.LENGTH_SHORT).show()
             requireActivity().onBackPressed()
             return
@@ -84,8 +94,8 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
                     works = workList
                     workParameters = workParametersMap
                 }
-            }catch (e: Exception){
-                withContext(Dispatchers.Main){
+            } catch (e: Exception) {
+                withContext(Dispatchers.Main) {
                     progressDialog.dismiss()
                     Toast.makeText(requireContext(), "Ошибка сети", Toast.LENGTH_SHORT).show()
                     requireActivity().onBackPressed()
@@ -109,13 +119,14 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
 
         val deleteWorkButton = workLayout.findViewById<ImageView>(R.id.deleteWorkButton)
         val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
-        val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
+        val workParametersContainer =
+            workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
         deleteWorkButton.setOnClickListener {
             (workLayout.parent as ViewGroup).removeView(workLayout)
         }
 
-        workEditText.setOnClickListener{showWorkDialog(workEditText, workParametersContainer)}
+        workEditText.setOnClickListener { showWorkDialog(workEditText, workParametersContainer) }
 
         workContainer.addView(workLayout)
     }
@@ -151,7 +162,7 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
                     "Ваш вклад в работу очень ценен!"
                 )
             }
-            createSpreadsheetMLFile()
+            sendXmlReportToDatabase()
             workContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
@@ -160,7 +171,29 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         dialog.show()
     }
 
-    private fun createSpreadsheetMLFile() {
+    private fun sendXmlReportToDatabase() {
+        val xmlContent = createSpreadsheetMLFile()
+        CoroutineScope(Dispatchers.IO).launch {
+            val connection = DatabaseConnection().createConnection()
+            val statement =
+                connection.prepareStatement("INSERT INTO отчеты(тип_отчета, дата, код_пользователя, файл, формат_файла, создан_в) VALUES(?, ?, ?, ?, ?, ?)")
+            statement.setString(1, "work_report")
+            statement.setDate(2, Date.valueOf(LocalDate.now().toString()))
+            context?.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                ?.getString("code", null)
+                ?.let { statement.setInt(3, it.toInt()) }
+            statement.setBytes(4, (xmlContent.toByteArray()))
+            statement.setString(5, "xml")
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSSSSSSSS]")
+            val formattedDateTime = LocalDateTime.now().format(formatter)
+            val timestamp = Timestamp.valueOf(formattedDateTime)
+            statement.setTimestamp(6, timestamp)
+            statement.executeUpdate()
+            connection.close()
+        }
+    }
+
+    private fun createSpreadsheetMLFile(): String {
         val activity = requireActivity() as InputDataActivity
         val dateEditText = activity.findViewById<EditText>(R.id.dateEditText)
         val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
@@ -169,63 +202,59 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
 
         objectUtils.saveObjectIfNotExists(objectEditText)
 
-        val file = File(requireContext().filesDir, "work_report.xml")
-        val outputStream = FileOutputStream(file)
-        val writer = OutputStreamWriter(outputStream, "UTF-8")
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
+        stringBuilder.append("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        stringBuilder.append("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
+        stringBuilder.append("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
+        stringBuilder.append("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        stringBuilder.append("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
+        stringBuilder.append("  <Worksheet ss:Name=\"Работа\">\n")
+        stringBuilder.append("    <Table>\n")
 
-        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
-        writer.write("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
-        writer.write("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
-        writer.write("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
-        writer.write("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
-        writer.write("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
-        writer.write("  <Worksheet ss:Name=\"Работа\">\n")
-        writer.write("    <Table>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidthForWorks()}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidthForTypes()}\"/>\n")
 
-        writer.write("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidthForWorks()}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidthForTypes()}\"/>\n")
-
-        writer.write("      <Row>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Вид работы</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Тип</Data></Cell>\n")
-        writer.write("      </Row>\n")
+        stringBuilder.append("      <Row>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Вид работы</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Тип</Data></Cell>\n")
+        stringBuilder.append("      </Row>\n")
 
         val workCount = workContainer.childCount
         for (i in 0 until workCount) {
             val workLayout = workContainer.getChildAt(i) as LinearLayout
             val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
-            val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
+            val workParametersContainer =
+                workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
-            writer.write("      <Row>\n")
+            stringBuilder.append("      <Row>\n")
             if (i == 0) {
-                writer.write("        <Cell ss:MergeDown=\"${workCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
-                writer.write("        <Cell ss:MergeDown=\"${workCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
+                stringBuilder.append("        <Cell ss:MergeDown=\"${workCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
+                stringBuilder.append("        <Cell ss:MergeDown=\"${workCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
             }
-            writer.write("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${workEditText.text}</Data></Cell>\n")
+            stringBuilder.append("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${workEditText.text}</Data></Cell>\n")
 
-            val parameterSpinner = workParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
-            if (parameterSpinner!=null) {
+            val parameterSpinner =
+                workParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
+            if (parameterSpinner != null) {
                 val parameterValue = parameterSpinner.selectedItem
-                writer.write("        <Cell><Data ss:Type=\"String\">$parameterValue</Data></Cell>\n")
+                stringBuilder.append("        <Cell><Data ss:Type=\"String\">$parameterValue</Data></Cell>\n")
             } else {
-                writer.write("        <Cell><Data ss:Type=\"String\">-</Data></Cell>\n")
+                stringBuilder.append("        <Cell><Data ss:Type=\"String\">-</Data></Cell>\n")
             }
 
-            writer.write("      </Row>\n")
+            stringBuilder.append("      </Row>\n")
         }
 
-        writer.write("    </Table>\n")
-        writer.write("  </Worksheet>\n")
-        writer.write("</Workbook>\n")
+        stringBuilder.append("    </Table>\n")
+        stringBuilder.append("  </Worksheet>\n")
+        stringBuilder.append("</Workbook>\n")
 
-        writer.close()
-        outputStream.close()
-
-        Log.i("fileTag", "Файл SpreadsheetML создан: ${file.absolutePath}")
+        return stringBuilder.toString()
     }
 
     private fun calculateColumnWidth(text: String): Int {
@@ -280,7 +309,8 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
         for (i in 0 until workContainer.childCount) {
             val workLayout = workContainer.getChildAt(i) as LinearLayout
             val workEditText = workLayout.findViewById<EditText>(R.id.workEditText)
-            val workParametersContainer = workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
+            val workParametersContainer =
+                workLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
             if (workEditText.text.isEmpty()) {
                 Toast.makeText(
@@ -292,7 +322,8 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
             }
 
             val workName = workEditText.text.toString()
-            val parameterSpinner = workParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
+            val parameterSpinner =
+                workParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
             val parameterValue = parameterSpinner?.selectedItem?.toString() ?: ""
 
             val workItem = WorkItem(workName, parameterValue)
@@ -396,8 +427,10 @@ class WorkFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener
 
         for ((parameter, values) in parameters) {
             val parameterLayout = layoutInflater.inflate(R.layout.parameter_item, null)
-            val parameterTextView = parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
-            val parameterValueSpinner = parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
+            val parameterTextView =
+                parameterLayout.findViewById<TextView>(R.id.parameterNameTextView)
+            val parameterValueSpinner =
+                parameterLayout.findViewById<Spinner>(R.id.parameterValueSpinner)
 
             parameterTextView.text = parameter
 
