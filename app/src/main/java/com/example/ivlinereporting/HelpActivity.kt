@@ -57,10 +57,8 @@ class HelpActivity : AppCompatActivity() {
             val item = helpAdapter.getChild(groupPosition, childPosition)
             if (item is Item.SubSection) {
                 if (currentSubSectionView != null && currentSubSectionView == v) {
-                    // Если нажали на тот же подраздел, скрываем его
                     hideSubSectionLayout(v)
                 } else {
-                    // Если нажали на другой подраздел, скрываем текущий и показываем новый
                     currentSubSectionView?.let { hideSubSectionLayout(it) }
                     showSubSectionLayout(v, item)
                     currentSubSectionView = v

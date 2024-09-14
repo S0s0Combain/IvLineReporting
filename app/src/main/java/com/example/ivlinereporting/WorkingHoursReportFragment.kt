@@ -31,6 +31,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.sql.Connection
+import java.sql.Date
+import java.sql.Timestamp
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class WorkingHoursReportFragment : Fragment() {
     private lateinit var workersViews: MutableMap<String, EditText>
@@ -168,7 +173,7 @@ class WorkingHoursReportFragment : Fragment() {
                     "Ваш труд не остался незамеченным!"
                 )
             }
-            createSpreadsheetMLFile()
+            sendXmlReportToDatabase()
             titleLinearLayout.visibility = View.INVISIBLE
             workersContainer.removeAllViews()
         }
@@ -178,7 +183,29 @@ class WorkingHoursReportFragment : Fragment() {
         dialog.show()
     }
 
-    private fun createSpreadsheetMLFile() {
+    private fun sendXmlReportToDatabase() {
+        val xmlContent = createSpreadsheetMLFile()
+        CoroutineScope(Dispatchers.IO).launch {
+            val connection = DatabaseConnection().createConnection()
+            val statement =
+                connection.prepareStatement("INSERT INTO отчеты(тип_отчета, дата, код_пользователя, файл, формат_файла, создан_в) VALUES(?, ?, ?, ?, ?, ?)")
+            statement.setString(1, "working_hours_report")
+            statement.setDate(2, Date.valueOf(LocalDate.now().toString()))
+            context?.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                ?.getString("code", null)
+                ?.let { statement.setInt(3, it.toInt()) }
+            statement.setBytes(4, (xmlContent.toByteArray()))
+            statement.setString(5, "xml")
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSSSSSSSS]")
+            val formattedDateTime = LocalDateTime.now().format(formatter)
+            val timestamp = Timestamp.valueOf(formattedDateTime)
+            statement.setTimestamp(6, timestamp)
+            statement.executeUpdate()
+            connection.close()
+        }
+    }
+
+    private fun createSpreadsheetMLFile() : String {
         val activity = requireActivity() as InputDataActivity
         val dateEditText = activity.findViewById<EditText>(R.id.dateEditText)
         val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
@@ -187,30 +214,27 @@ class WorkingHoursReportFragment : Fragment() {
 
         objectUtils.saveObjectIfNotExists(objectEditText)
 
-        val file = File(requireContext().filesDir, "working_hours_report.xml")
-        val outputStream = FileOutputStream(file)
-        val writer = OutputStreamWriter(outputStream, "UTF-8")
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
+        stringBuilder.append("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        stringBuilder.append("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
+        stringBuilder.append("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
+        stringBuilder.append("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        stringBuilder.append("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
+        stringBuilder.append("  <Worksheet ss:Name=\"Отработанные часы\">\n")
+        stringBuilder.append("    <Table>\n")
 
-        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
-        writer.write("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
-        writer.write("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
-        writer.write("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
-        writer.write("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
-        writer.write("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
-        writer.write("  <Worksheet ss:Name=\"Отработанные часы\">\n")
-        writer.write("    <Table>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidthForWorkers()}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"50\"/>\n")
 
-        writer.write("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidthForWorkers()}\"/>\n")
-        writer.write("      <Column ss:Width=\"50\"/>\n")
-
-        writer.write("      <Row>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Сотрудник</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Часы</Data></Cell>\n")
-        writer.write("      </Row>\n")
+        stringBuilder.append("      <Row>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Сотрудник</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Часы</Data></Cell>\n")
+        stringBuilder.append("      </Row>\n")
 
         val workerCount = workersContainer.childCount
         for (i in 0 until workerCount) {
@@ -218,24 +242,21 @@ class WorkingHoursReportFragment : Fragment() {
             val workerEditText = workerLayout.findViewById<EditText>(R.id.workerEditText)
             val hoursEditText = workerLayout.findViewById<EditText>(R.id.hoursEditText)
 
-            writer.write("      <Row>\n")
+            stringBuilder.append("      <Row>\n")
             if (i == 0) {
-                writer.write("        <Cell ss:MergeDown=\"${workerCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
-                writer.write("        <Cell ss:MergeDown=\"${workerCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
+                stringBuilder.append("        <Cell ss:MergeDown=\"${workerCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
+                stringBuilder.append("        <Cell ss:MergeDown=\"${workerCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
             }
-            writer.write("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${workerEditText.text}</Data></Cell>\n")
-            writer.write("        <Cell><Data ss:Type=\"Number\">${hoursEditText.text}</Data></Cell>\n")
-            writer.write("      </Row>\n")
+            stringBuilder.append("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${workerEditText.text}</Data></Cell>\n")
+            stringBuilder.append("        <Cell><Data ss:Type=\"Number\">${hoursEditText.text}</Data></Cell>\n")
+            stringBuilder.append("      </Row>\n")
         }
 
-        writer.write("    </Table>\n")
-        writer.write("  </Worksheet>\n")
-        writer.write("</Workbook>\n")
+        stringBuilder.append("    </Table>\n")
+        stringBuilder.append("  </Worksheet>\n")
+        stringBuilder.append("</Workbook>\n")
 
-        writer.close()
-        outputStream.close()
-
-        Log.i("fileTag", "Файл SpreadsheetML создан: ${file.absolutePath}")
+        return stringBuilder.toString()
     }
 
     private fun calculateColumnWidth(text: String): Int {

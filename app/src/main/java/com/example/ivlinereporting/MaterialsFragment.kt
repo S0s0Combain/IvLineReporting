@@ -13,7 +13,6 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
 import android.widget.EditText
 import android.widget.ImageView
 import android.widget.LinearLayout
@@ -32,6 +31,11 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.sql.Connection
+import java.sql.Date
+import java.sql.Timestamp
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 
 class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickListener {
     lateinit var materialsContainer: LinearLayout
@@ -76,7 +80,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val (materialList, materialUnitsMap) = getMaterialsAndTypesFromDB()
+                val (materialList, materialUnitsMap) = getMaterialsFromDB()
                 withContext(Dispatchers.Main) {
                     progressDialog.dismiss()
                     materials = materialList
@@ -93,7 +97,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
         objectUtils = ObjectUtils(requireContext())
     }
 
-    private suspend fun getMaterialsAndTypesFromDB(): Pair<List<String>, Map<String, String>> {
+    private suspend fun getMaterialsFromDB(): Pair<List<String>, Map<String, String>> {
         return withContext(Dispatchers.IO) {
             val dbConnection = DatabaseConnection()
             Class.forName("net.sourceforge.jtds.jdbc.Driver")
@@ -170,7 +174,7 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             dialog.dismiss()
             Toast.makeText(requireContext(), "Данные отправлены успешно", Toast.LENGTH_SHORT).show()
             DialogUtils.showEncouragementDialog(requireContext(), "Спасибо!", "Вы тщательно отследили использование материалов! Ваша внимательнность к деталям не осталась незамеченной!")
-            createSpreadsheetMLFile()
+            sendXmlReportToDatabase()
             materialsContainer.removeAllViews()
         }
         dialog.setNegativeButton("Отмена") { dialog, _ ->
@@ -190,13 +194,12 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             return false
         }
 
-        val materialsData = mutableSetOf<Pair<String, String?>>()
+        val materialsData = mutableListOf<String>()
 
         for (i in 0 until materialsContainer.childCount) {
             val materialsLayout = materialsContainer.getChildAt(i) as LinearLayout
             val materialsEditText = materialsLayout.findViewById<EditText>(R.id.materialEditText)
             val quantityEditText = materialsLayout.findViewById<EditText>(R.id.quantityEditText)
-            val materialParametersContainer = materialsLayout.findViewById<LinearLayout>(R.id.parametersContainer)
 
             if (materialsEditText.text.isEmpty()) {
                 Toast.makeText(
@@ -219,23 +222,45 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             }
 
             val materialName = materialsEditText.text.toString()
-            val typeSpinner = materialParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
-            val typeValue = if (typeSpinner != null) typeSpinner.selectedItem.toString() else null
 
-            if (!materialsData.add(Pair(materialName, typeValue))) {
+            if (materialsData.contains(materialName)) {
                 Toast.makeText(
                     requireContext(),
                     "Виды материалов не должны повторяться",
                     Toast.LENGTH_SHORT
                 ).show()
                 return false
+            } else{
+                materialsData.add(materialName)
             }
         }
 
         return validateActivityFields()
     }
 
-    private fun createSpreadsheetMLFile() {
+    private fun sendXmlReportToDatabase() {
+        val xmlContent = createSpreadsheetMLFile()
+        CoroutineScope(Dispatchers.IO).launch {
+            val connection = DatabaseConnection().createConnection()
+            val statement =
+                connection.prepareStatement("INSERT INTO отчеты(тип_отчета, дата, код_пользователя, файл, формат_файла, создан_в) VALUES(?, ?, ?, ?, ?, ?)")
+            statement.setString(1, "materials_report")
+            statement.setDate(2, Date.valueOf(LocalDate.now().toString()))
+            context?.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                ?.getString("code", null)
+                ?.let { statement.setInt(3, it.toInt()) }
+            statement.setBytes(4, (xmlContent.toByteArray()))
+            statement.setString(5, "xml")
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSSSSSSSS]")
+            val formattedDateTime = LocalDateTime.now().format(formatter)
+            val timestamp = Timestamp.valueOf(formattedDateTime)
+            statement.setTimestamp(6, timestamp)
+            statement.executeUpdate()
+            connection.close()
+        }
+    }
+
+    private fun createSpreadsheetMLFile() : String {
         val activity = requireActivity() as InputDataActivity
         val dateEditText = activity.findViewById<EditText>(R.id.dateEditText)
         val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
@@ -244,72 +269,55 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
 
         objectUtils.saveObjectIfNotExists(objectEditText)
 
-        val file = File(requireContext().filesDir, "material_report.xml")
-        val outputStream = FileOutputStream(file)
-        val writer = OutputStreamWriter(outputStream, "UTF-8")
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
+        stringBuilder.append("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        stringBuilder.append("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
+        stringBuilder.append("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
+        stringBuilder.append("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        stringBuilder.append("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
+        stringBuilder.append("  <Worksheet ss:Name=\"Материалы\">\n")
+        stringBuilder.append("    <Table>\n")
 
-        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
-        writer.write("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
-        writer.write("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
-        writer.write("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
-        writer.write("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
-        writer.write("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
-        writer.write("  <Worksheet ss:Name=\"Материалы\">\n")
-        writer.write("    <Table>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidthForMaterials()}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidthForQuantity()}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidthForUnits()}\"/>\n")
 
-        writer.write("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidthForMaterials()}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidthForTypes()}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidthForQuantity()}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidthForUnits()}\"/>\n")
-
-        writer.write("      <Row>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Наименование</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Тип</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Количество</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Единица измерения</Data></Cell>\n")
-        writer.write("      </Row>\n")
+        stringBuilder.append("      <Row>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Наименование</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Количество</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Единица измерения</Data></Cell>\n")
+        stringBuilder.append("      </Row>\n")
 
         val materialCount = materialsContainer.childCount
         for (i in 0 until materialCount) {
             val materialLayout = materialsContainer.getChildAt(i) as LinearLayout
             val materialEditText = materialLayout.findViewById<EditText>(R.id.materialEditText)
-            val materialParametersContainer = materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
             val quantityEditText = materialLayout.findViewById<EditText>(R.id.quantityEditText)
             val unitMeasurementTextView = materialLayout.findViewById<TextView>(R.id.unitMeasurementTextView)
 
-            writer.write("      <Row>\n")
+            stringBuilder.append("      <Row>\n")
             if (i == 0) {
-                writer.write("        <Cell ss:MergeDown=\"${materialCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
-                writer.write("        <Cell ss:MergeDown=\"${materialCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
+                stringBuilder.append("        <Cell ss:MergeDown=\"${materialCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
+                stringBuilder.append("        <Cell ss:MergeDown=\"${materialCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
             }
-            writer.write("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${materialEditText.text}</Data></Cell>\n")
+            stringBuilder.append("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${materialEditText.text}</Data></Cell>\n")
 
-            val typeSpinner = materialParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
-            if (typeSpinner != null) {
-                val typeValue = typeSpinner.selectedItem
-                writer.write("        <Cell><Data ss:Type=\"String\">$typeValue</Data></Cell>\n")
-            } else {
-                writer.write("        <Cell><Data ss:Type=\"String\">-</Data></Cell>\n")
-            }
+            stringBuilder.append("        <Cell><Data ss:Type=\"Number\">${quantityEditText.text}</Data></Cell>\n")
+            stringBuilder.append("        <Cell><Data ss:Type=\"String\">${unitMeasurementTextView.text}</Data></Cell>\n")
 
-            writer.write("        <Cell><Data ss:Type=\"Number\">${quantityEditText.text}</Data></Cell>\n")
-            writer.write("        <Cell><Data ss:Type=\"String\">${unitMeasurementTextView.text}</Data></Cell>\n")
-
-            writer.write("      </Row>\n")
+            stringBuilder.append("      </Row>\n")
         }
 
-        writer.write("    </Table>\n")
-        writer.write("  </Worksheet>\n")
-        writer.write("</Workbook>\n")
+        stringBuilder.append("    </Table>\n")
+        stringBuilder.append("  </Worksheet>\n")
+        stringBuilder.append("</Workbook>\n")
 
-        writer.close()
-        outputStream.close()
-
-        Log.i("fileTag", "Файл SpreadsheetML создан: ${file.absolutePath}")
+        return stringBuilder.toString()
     }
 
     private fun calculateColumnWidth(text: String): Int {
@@ -325,23 +333,6 @@ class MaterialsFragment : Fragment(), OnAddItemClickListener, OnSendDataClickLis
             val materialName = materialEditText.text.toString()
             if (materialName.length > maxLength) {
                 maxLength = materialName.length
-            }
-        }
-        val averageCharWidth = 8
-        return maxLength * averageCharWidth
-    }
-
-    private fun calculateColumnWidthForTypes(): Int {
-        var maxLength = 0
-        for (i in 0 until materialsContainer.childCount) {
-            val materialLayout = materialsContainer.getChildAt(i) as LinearLayout
-            val materialParametersContainer = materialLayout.findViewById<LinearLayout>(R.id.parametersContainer)
-            val typeSpinner = materialParametersContainer.findViewById<Spinner>(R.id.parameterValueSpinner)
-            if (typeSpinner != null) {
-                val typeValue = typeSpinner.selectedItem.toString()
-                if (typeValue.length > maxLength) {
-                    maxLength = typeValue.length
-                }
             }
         }
         val averageCharWidth = 8

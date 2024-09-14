@@ -2,6 +2,7 @@ package com.example.ivlinereporting
 
 import android.app.AlertDialog
 import android.app.ProgressDialog
+import android.content.Context
 import android.icu.util.Calendar
 import android.os.Build
 import android.os.Bundle
@@ -30,6 +31,13 @@ import java.io.File
 import java.io.FileOutputStream
 import java.io.OutputStreamWriter
 import java.sql.Connection
+import java.sql.Date
+import java.sql.Timestamp
+import java.text.SimpleDateFormat
+import java.time.LocalDate
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 class TechniqueReportFragment : Fragment() {
     private lateinit var techniqueViews: MutableMap<String, EditText>
@@ -129,7 +137,7 @@ class TechniqueReportFragment : Fragment() {
                 "Спасибо!",
                 "Вы тщательно отследили использование техники! Отличная работа!"
             )
-            createSpreadsheetMLFile()
+            sendXmlReportToDatabase()
             titleLinearLayout.visibility = View.INVISIBLE
             techniqueContainer.removeAllViews()
         }
@@ -139,7 +147,35 @@ class TechniqueReportFragment : Fragment() {
         dialog.show()
     }
 
-    private fun createSpreadsheetMLFile() {
+    private fun sendXmlReportToDatabase() {
+        val xmlContent = createSpreadsheetMLFile()
+        CoroutineScope(Dispatchers.IO).launch {
+            val connection = DatabaseConnection().createConnection()
+            val statement =
+                connection.prepareStatement("INSERT INTO отчеты(тип_отчета, дата, код_пользователя, файл, формат_файла, создан_в) VALUES(?, ?, ?, ?, ?, ?)")
+            statement.setString(1, "technic_report")
+            val dateEditText = activity?.findViewById<EditText>(R.id.dateEditText)
+            val inputFormat = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+            val parsedDate = inputFormat.parse(dateEditText?.text?.toString())
+            val outputFormat = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val formattedDate = outputFormat.format(parsedDate)
+            val sqlDate = java.sql.Date.valueOf(formattedDate)
+            statement.setDate(2, sqlDate)
+            context?.getSharedPreferences("user_prefs", Context.MODE_PRIVATE)
+                ?.getString("code", null)
+                ?.let { statement.setInt(3, it.toInt()) }
+            statement.setBytes(4, (xmlContent.toByteArray()))
+            statement.setString(5, "xml")
+            val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss[.SSSSSSSSS]")
+            val formattedDateTime = LocalDateTime.now().format(formatter)
+            val timestamp = Timestamp.valueOf(formattedDateTime)
+            statement.setTimestamp(6, timestamp)
+            statement.executeUpdate()
+            connection.close()
+        }
+    }
+
+    private fun createSpreadsheetMLFile():String {
         val activity = requireActivity() as InputDataActivity
         val dateEditText = activity.findViewById<EditText>(R.id.dateEditText)
         val objectEditText = activity.findViewById<EditText>(R.id.objectEditText)
@@ -148,32 +184,29 @@ class TechniqueReportFragment : Fragment() {
 
         objectUtils.saveObjectIfNotExists(objectEditText)
 
-        val file = File(requireContext().filesDir, "technique_report.xml")
-        val outputStream = FileOutputStream(file)
-        val writer = OutputStreamWriter(outputStream, "UTF-8")
+        val stringBuilder = StringBuilder()
+        stringBuilder.append("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
+        stringBuilder.append("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        stringBuilder.append("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
+        stringBuilder.append("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
+        stringBuilder.append("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
+        stringBuilder.append("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
+        stringBuilder.append("  <Worksheet ss:Name=\"Техника\">\n")
+        stringBuilder.append("    <Table>\n")
 
-        writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n")
-        writer.write("<Workbook xmlns=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
-        writer.write("          xmlns:o=\"urn:schemas-microsoft-com:office:office\"\n")
-        writer.write("          xmlns:x=\"urn:schemas-microsoft-com:office:excel\"\n")
-        writer.write("          xmlns:ss=\"urn:schemas-microsoft-com:office:spreadsheet\"\n")
-        writer.write("          xmlns:html=\"http://www.w3.org/TR/REC-html40\">\n")
-        writer.write("  <Worksheet ss:Name=\"Техника\">\n")
-        writer.write("    <Table>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidthForTechniques()}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"${calculateColumnWidthForWorkTypes()}\"/>\n")
+        stringBuilder.append("      <Column ss:Width=\"50\"/>\n")
 
-        writer.write("      <Column ss:Width=\"${calculateColumnWidth(date)}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidth(obj)}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidthForTechniques()}\"/>\n")
-        writer.write("      <Column ss:Width=\"${calculateColumnWidthForWorkTypes()}\"/>\n")
-        writer.write("      <Column ss:Width=\"50\"/>\n")
-
-        writer.write("      <Row>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Техника</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Тип работы</Data></Cell>\n")
-        writer.write("        <Cell><Data ss:Type=\"String\">Количество</Data></Cell>\n")
-        writer.write("      </Row>\n")
+        stringBuilder.append("      <Row>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Дата</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Объект</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Техника</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Тип работы</Data></Cell>\n")
+        stringBuilder.append("        <Cell><Data ss:Type=\"String\">Количество</Data></Cell>\n")
+        stringBuilder.append("      </Row>\n")
 
         val techniqueCount = techniqueContainer.childCount
         for (i in 0 until techniqueCount) {
@@ -182,25 +215,22 @@ class TechniqueReportFragment : Fragment() {
             val timeTypeSpinner = techniqueLayout.findViewById<Spinner>(R.id.timeType)
             val quantityEditText = techniqueLayout.findViewById<EditText>(R.id.quantityEditText)
 
-            writer.write("      <Row>\n")
+            stringBuilder.append("      <Row>\n")
             if (i == 0) {
-                writer.write("        <Cell ss:MergeDown=\"${techniqueCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
-                writer.write("        <Cell ss:MergeDown=\"${techniqueCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
+                stringBuilder.append("        <Cell ss:MergeDown=\"${techniqueCount - 1}\"><Data ss:Type=\"String\">$date</Data></Cell>\n")
+                stringBuilder.append("        <Cell ss:MergeDown=\"${techniqueCount - 1}\"><Data ss:Type=\"String\">$obj</Data></Cell>\n")
             }
-            writer.write("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${techniqueEditText.text}</Data></Cell>\n")
-            writer.write("        <Cell><Data ss:Type=\"String\">${timeTypeSpinner.selectedItem}</Data></Cell>\n")
-            writer.write("        <Cell><Data ss:Type=\"Number\">${quantityEditText.text}</Data></Cell>\n")
-            writer.write("      </Row>\n")
+            stringBuilder.append("        <Cell ss:Index=\"3\"><Data ss:Type=\"String\">${techniqueEditText.text}</Data></Cell>\n")
+            stringBuilder.append("        <Cell><Data ss:Type=\"String\">${timeTypeSpinner.selectedItem}</Data></Cell>\n")
+            stringBuilder.append("        <Cell><Data ss:Type=\"Number\">${quantityEditText.text}</Data></Cell>\n")
+            stringBuilder.append("      </Row>\n")
         }
 
-        writer.write("    </Table>\n")
-        writer.write("  </Worksheet>\n")
-        writer.write("</Workbook>\n")
+        stringBuilder.append("    </Table>\n")
+        stringBuilder.append("  </Worksheet>\n")
+        stringBuilder.append("</Workbook>\n")
 
-        writer.close()
-        outputStream.close()
-
-        Log.i("fileTag", "Файл SpreadsheetML создан: ${file.absolutePath}")
+        return stringBuilder.toString()
     }
 
     private fun calculateColumnWidth(text: String): Int {
