@@ -1,9 +1,11 @@
 package com.example.ivlinereporting
 
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.ExpandableListView
 import android.widget.FrameLayout
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 
@@ -17,7 +19,6 @@ class HelpActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.activity_help)
         expandableListView = findViewById(R.id.expandableListView)
-
         val sections = listOf(
             Section("О приложении", listOf(Item.LayoutItem(R.layout.about_app_layout))),
             Section("Обратная связь", listOf(Item.LayoutItem(R.layout.feedback_layout))),
@@ -44,7 +45,6 @@ class HelpActivity : AppCompatActivity() {
 
         helpAdapter = HelpAdapter(this, sections)
         expandableListView.setAdapter(helpAdapter)
-
         expandableListView.setOnGroupExpandListener { groupPosition ->
             for (i in 0 until helpAdapter.groupCount) {
                 if (i != groupPosition) {
@@ -69,6 +69,7 @@ class HelpActivity : AppCompatActivity() {
     }
 
     private fun showSubSectionLayout(view: View, subSection: Item.SubSection) {
+        Log.d("MyLog", "showSubSectionLayout called")
         val layoutId = subSection.subItems[0].layoutId
         val frameLayout = view.findViewById<FrameLayout>(R.id.sub_section_content)
         frameLayout.removeAllViews()
