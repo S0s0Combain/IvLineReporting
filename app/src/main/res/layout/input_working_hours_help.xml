@@ -1,9 +1,77 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:orientation="vertical">
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Как ввести данные об отработанных часах"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:textSize="16sp"
+        android:text="\t\tЧтобы добавить данные об отработанных часах, нажмите кнопку &quot;+&quot; для добавления сотрудника. Появятся поле ввода сотрудника и поле ввода количества часов.\nКнопка добавления сотрудника:"
+        android:layout_marginBottom="8dp"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/add_button"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\t\tДобавление сотрудника"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:text="\t\tНажмите на поле ввода сотрудника, чтобы открыть список сотрудников. В списке первыми отображаются сотрудники из бригады пользователя, затем все остальные. В поле ввода количества часов можно ввести целое число от 1 до 24.\nВсе поля должны быть заполнены, включая дату и объект. Дату можно ввести не более чем на 1 день позже текущей и не более чем на 3 дня раньше текущей."
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\t\tУдаление сотрудника"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\t\tДля удаления сотрудника нажмите &quot;крестик&quot; слева от полей ввода:"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/delete_button"
+        android:layout_marginBottom="16dp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\t\tОтправка данных"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\t\tЧтобы отправить данные, необходимо убедиться, что заполнены все поля, затем нажать на кнопку отправки в правом нижнем углу экрана и нажать кнопку &quot;Подтвердить&quot; в появившемся диалоговом окне.\nКнопка отправки данных:"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/send_button"
+        android:layout_marginBottom="16dp"/>
+</LinearLayout>

@@ -1,6 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    android:orientation="vertical">
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\t\tВ приложении доступно меню, которое можно открыть на всех экранах, за исключением экрана авторизации. Для открытия меню проведите вправо от левого края экрана или нажмите на иконку бургер-меню, представляющую собой квадратную кнопку с тремя горизонтальными  полосками:"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/baseline_menu_24"
+        android:layout_marginBottom="16dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="\t\tМеню содержит следующие элементы:"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="1. Логин пользователя: отображается в верхней части меню."
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="2. Кнопка &quot;Помощь&quot;: переводит на экран помощи."
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="3. Переключатель тем: позволяет выбрать тему приложения (темную или светлую)."
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="4. Кнопка выхода из аккаунта: возвращает пользователя на экран авторизации."
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="5. Кнопка выхода из приложения: закрывает приложение."
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"/>
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+</LinearLayout>

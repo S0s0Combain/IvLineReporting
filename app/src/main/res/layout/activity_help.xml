@@ -18,11 +18,28 @@
             android:layout_height="wrap_content"
             android:orientation="vertical"
             tools:context=".HelpActivity">
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/yellow"
+                app:titleTextColor="@color/black" />
 
             <ExpandableListView
                 android:id="@+id/expandableListView"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent" />
+                android:layout_height="match_parent"
+                style="@style/ExpandableListHeaderStyle"/>
         </LinearLayout>
     </ScrollView>
+    <com.google.android.material.navigation.NavigationView
+        android:id="@+id/navView"
+        style="@style/NavigationViewStyle"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_gravity="start"
+        android:background="@color/yellow"
+        android:fitsSystemWindows="true"
+        app:headerLayout="@layout/nav_header"
+        app:menu="@menu/bottom_nav_menu" />
 </androidx.drawerlayout.widget.DrawerLayout>

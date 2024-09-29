@@ -1,15 +1,37 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/aboutAppContainer"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:id="@+id/aboutAppContainer"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <TextView
-        android:id="@+id/aboutAppTextView"
+        android:id="@+id/appNameTextView"
         android:layout_width="match_parent"
-        android:textColor="@color/black"
-        android:textSize="18sp"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="6dp"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:id="@+id/versionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_marginBottom="6dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:text="\t\tРазработчик: Кудринский Артем"
+        android:textSize="16sp"/>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="\t\tПриложение предназначено для ввода и управления данными о выполненной работе. Оно предоставляет удобный интерфейс для ввода данных и генерации отчетов." />
 </LinearLayout>

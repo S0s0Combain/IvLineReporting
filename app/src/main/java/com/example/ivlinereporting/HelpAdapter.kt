@@ -2,6 +2,7 @@ package com.example.ivlinereporting
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.Typeface
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.TextPaint
@@ -47,6 +48,8 @@ class HelpAdapter(private val context: Context, private val sections: List<Secti
         val view = convertView ?: LayoutInflater.from(context)
             .inflate(android.R.layout.simple_expandable_list_item_1, parent, false)
         val textView = view.findViewById<TextView>(android.R.id.text1)
+        textView.textSize = 20f
+        textView.setTypeface(null, Typeface.BOLD)
         textView.text = sections[groupPosition].title
         return view
     }
@@ -63,8 +66,10 @@ class HelpAdapter(private val context: Context, private val sections: List<Secti
             is Item.LayoutItem -> {
                 val view = LayoutInflater.from(context).inflate(item.layoutId, parent, false)
                 if (item.layoutId == R.layout.about_app_layout) {
-                    val aboutAppTextView = view.findViewById<TextView>(R.id.aboutAppTextView)
-                    aboutAppTextView.text = "Версия приложения: ${getAppVersion()}"
+                    val appNameTextView = view.findViewById<TextView>(R.id.appNameTextView)
+                    val versionTextView = view.findViewById<TextView>(R.id.versionTextView)
+                    appNameTextView.text = "\t\tИмя приложения: ${context.getString(R.string.app_name)}"
+                    versionTextView.text = "\t\tВерсия: ${getAppVersion()}"
                 }
                 if(item.layoutId == R.layout.feedback_layout){
                     val feedbackTextView = view.findViewById<TextView>(R.id.feedbackTextView)
@@ -91,7 +96,7 @@ class HelpAdapter(private val context: Context, private val sections: List<Secti
 
     private fun getHelpText(): SpannableString {
         val helpText =
-            "Если у вас возникли проблемы при использовании приложения, пожалуйста, обратитесь по адресу "
+            "\t\tЕсли у вас возникли проблемы при использовании приложения, пожалуйста, обратитесь по адресу "
         val emailAddress = "dev.assist@yandex.ru"
         val fullText = "$helpText$emailAddress"
 

@@ -1,9 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Как ввести данные об использованной технике"/>
-</androidx.constraintlayout.widget.ConstraintLayout>
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tЧтобы добавить данные о технике, нажмите &quot;+&quot;. Появятся поле ввода техники, нажав на которое появится список, в котором сначала отображается наемная техника, затем техника компании, выпадающий список с возможностью выбора типа работы (часы либо рейсы) и поле ввода количества часов / рейсов.\nКнопка добавления техники:" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/add_button" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tДобавление техники"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tВ поле ввода количества можно ввести только целые положительные числа, содержащие не более 2-х знаков. Для удаления техники нажмите &quot;крестик&quot; слева от полей ввода:" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/delete_button" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="\t\tВсе поля должны быть заполнены, включая дату и объект. Дату можно ввести не более чем на 1 день позже текущей и не более чем на 3 дня раньше текущей." />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tОтправка данных"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tЧтобы отправить данные, необходимо убедиться, что заполнены все поля, затем нажать на кнопку отправки в правом нижнем углу экрана и нажать кнопку &quot;Подтвердить&quot; в появившемся диалоговом окне.\nКнопка отправки данных:" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/send_button" />
+
+</LinearLayout>

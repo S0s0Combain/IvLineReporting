@@ -8,8 +8,11 @@
         android:id="@+id/sub_section_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:textSize="18sp" />
+        android:paddingLeft="30dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="4dp"
+        android:textSize="18sp"
+        android:textStyle="bold"/>
 
     <FrameLayout
         android:id="@+id/sub_section_content"

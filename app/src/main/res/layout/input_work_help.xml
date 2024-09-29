@@ -3,14 +3,125 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:padding="16dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Помощь ввода данных о работе"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="\t\tВвод данных о выполненной работе включает три раздела: данные о выполненной работе, данные о затраченных материалах и фотоотчет." />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tДобавление новых элементов"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tЧтобы добавить новый вид работы, материал или вложение, нажмите на кнопку &quot;+&quot; в правом нижнем углу экрана:" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/add_button" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="\t\tВо всех разделах обязательно должны быть заполнены поля &quot;Дата&quot; и &quot;Объект&quot;. Дату можно ввести не более чем на 3 дня раньше и не более чем на 1 день позже текущей." />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tДобавление данных о выполненной работе"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tПри нажатии кнопки добавления появится поле ввода вида работы. Нажмите на это поле, чтобы выбрать необходимый вид работы из списка. Список содержит виды работ, которые зависят от бригады пользователя. Все добавленные поля должны быть заполнены. Удалить вид работы можно с помощью нажатия на &quot;крестик&quot; слева от поля ввода:" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/baseline_close_24" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tДобавление данных о затраченных материалах"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tПри нажатии кнопки добавления появятся поле ввода материала и поле ввода количества материалов. Нажмите на поле ввода материала, чтобы открыть список материалов. Список содержит материалы, которые зависят от бригады пользователя. В поле ввода количества можно вводить только целые положительные числа, содержащие не более 5 знаков. Удалить материал можно с помощью нажатия на &quot;крестик&quot; слева от полей ввода:" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/baseline_close_24" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="\t\tДобавление фотоотчета"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tПри нажатии кнопки добавления на фрагменте фотоотчета откроется диалоговое окно с вариантом выбора вложений: выбрать фото из галереи, открыть камеру и сфотографировать или прикрепить PDF-файл. Удалить вложение можно с помощью крестика, находящегося в правом верхнем углу прикрепленного вложения:" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/delete_button" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:text="\t\tОтправка данных"
+        android:textSize="16sp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tЧтобы отправить данные, необходимо убедиться, что заполнены все поля, затем нажать на кнопку отправки в правом нижнем углу экрана и нажать кнопку &quot;Подтвердить&quot; в появившемся диалоговом окне.\nКнопка отправки данных:" />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/send_button" />
 </LinearLayout>

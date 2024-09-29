@@ -1,6 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_marginBottom="16dp"
+        android:text="\t\tНа главной странице приложения находятся элементы для выбора отчета, который пользователь будет заполнять. Каждый элемент  представлен в виде карточки с заголовком и изображеним." />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="\t\tДоступно три вида отчетов:"
+        android:textStyle="bold" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="16sp"
+        android:layout_marginBottom="8dp"
+        android:text="1. Отчет о выполненной работе: включает в себя ввод данных о выполненной работе, затраченных материалах и фотоотчет для прикрепления изображений и файлов." />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="8dp"
+        android:textSize="16sp"
+        android:text="2. Отчет об отработанных часах: здесь вводится информация о сотрудниках и количестве отработанных ими часов." />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="3. Отчет о технике: включает в себя данные о задействованной  технике и количестве отработанных часов или выполненных рейсов." />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:textSize="16sp"
+        android:text="\t\tДля выбора отчета нажмите на кнопку &quot;Выбрать&quot; на соответствующей карточке. После выбора отчета вы будете перенаправлены на страницу ввода данных, где откроется нужный интерфейс в зависимости от выбранного отчета." />
+
+    <ImageView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="16dp"
+        android:src="@drawable/select_button_help" />
+</LinearLayout>
