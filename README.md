@@ -147,6 +147,6 @@ IvLineReporting — это мобильное приложение для вед
 - **Email:** dev.assist@yandex.ru
 - **GitHub:** [S0s0Combain](https://github.com/S0s0Combain)
 
-## License
+## Лицензия
 
 Этот проект лицензирован под [Apache License 2.0](LICENSE).
